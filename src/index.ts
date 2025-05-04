@@ -1,6 +1,7 @@
-import type { AnswerList, Prompt, QuestionList } from './types.ts';
 import * as readline from 'node:readline/promises';
 import { styleText } from 'node:util';
+import { KEYCODES } from './constants.ts';
+import type { AnswerList, Prompt, QuestionList } from './types.ts';
 
 export function create<const T extends QuestionList<string>>(
   questions: T
@@ -53,7 +54,7 @@ async function text(message: string): Promise<string> {
     output: process.stdout,
   });
 
-  const promise = rl.question(`${styleText(['blue'], '?')} ${message}\n  `);
+  const promise = rl.question(`${question(message, false)}\n  `);
 
   const answer = await promise;
 
@@ -61,7 +62,7 @@ async function text(message: string): Promise<string> {
   clear(2);
 
   process.stdout.write(
-    `${styleText(['bold', 'green'], '✔')} ${message}\n  ${styleText('gray', answer)}\n`
+    `${question(message, true)}\n  ${styleText('gray', answer)}\n`
   );
 
   rl.close();
@@ -72,23 +73,25 @@ async function text(message: string): Promise<string> {
 async function select(message: string, choices: string[]): Promise<string> {
   let selected = 0;
 
-  const getText = () =>
+  const getText = (answered: boolean) =>
     [
-      `${styleText(['blue'], '?')} ${message}`,
+      question(message, answered),
       ...choices.map((choice, i) => {
         const indicator = i === selected ? '●' : '○';
-        const prefix =
-          i === selected
+        const prefix = answered
+          ? styleText(['gray'], indicator)
+          : i === selected
             ? styleText(['green'], indicator)
             : styleText(['white'], indicator);
-        return `  ${prefix} ${choice}`;
+
+        return `  ${prefix} ${answered ? styleText('gray', choice) : choice}`;
       }),
     ].join('\n');
 
-  process.stdout.write(CODES.HIDE_CURSOR);
-  process.stdout.write(getText());
+  process.stdout.write(KEYCODES.HIDE_CURSOR);
+  process.stdout.write(getText(false));
 
-  // Handle key presses
+  // Enable raw mode to capture keypresses
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
@@ -97,42 +100,52 @@ async function select(message: string, choices: string[]): Promise<string> {
       const key = data.toString();
 
       switch (key) {
-        case CODES.ARROW_UP: {
-          selected = selected > 0 ? selected - 1 : selected;
-          const text = getText();
+        case KEYCODES.ARROW_UP:
+        case KEYCODES.ARROW_DOWN: {
+          selected = Math.min(
+            Math.max(
+              key === KEYCODES.ARROW_UP ? selected - 1 : selected + 1,
+              0
+            ),
+            choices.length - 1
+          );
+
+          const text = getText(false);
+
           clear(text.split('\n').length);
+
           process.stdout.write(`\n${text}`);
+
           break;
         }
-        case CODES.ARROW_DOWN: {
-          selected = selected < choices.length - 1 ? selected + 1 : selected;
-          const text = getText();
-          clear(text.split('\n').length);
-          process.stdout.write(`\n${text}`);
-          break;
-        }
-        case CODES.ENTER: {
+        case KEYCODES.ENTER:
+        case KEYCODES.CONTROL_C: {
           process.stdin.setRawMode(false);
           process.stdin.removeListener('data', onKeyPress);
           process.stdin.pause();
 
-          // Show cursor again
-          process.stdout.write(CODES.HIDE_CURSOR);
-          process.stdout.write('\n');
+          process.stdout.write(KEYCODES.SHOW_CURSOR);
 
-          const answer = choices[selected];
+          if (key === KEYCODES.ENTER) {
+            const text = getText(true);
 
-          if (answer === undefined) {
-            reject(new Error('Invalid answer'));
+            clear(text.split('\n').length);
+
+            process.stdout.write(`\n${text}\n`);
+
+            const answer = choices[selected];
+
+            if (answer === undefined) {
+              reject(new Error('Invalid answer'));
+            } else {
+              resolve(answer);
+            }
           } else {
-            resolve(answer);
+            process.stdout.write('\n');
+
+            reject(new Error('User cancelled the prompt'));
           }
-          break;
-        }
-        case CODES.CONTROL_C: {
-          // Show cursor again before exiting
-          process.stdout.write(CODES.HIDE_CURSOR);
-          reject(new Error('User cancelled the prompt'));
+
           break;
         }
       }
@@ -148,10 +161,10 @@ function clear(lines: number) {
   );
 }
 
-const CODES = {
-  ARROW_UP: '\u001B[A',
-  ARROW_DOWN: '\u001B[B',
-  CONTROL_C: '\u0003',
-  ENTER: '\r',
-  HIDE_CURSOR: '\x1B[?25l',
-} as const;
+function question(message: string, answered: boolean) {
+  if (answered) {
+    return `${styleText(['green'], '✔')} ${message}`;
+  } else {
+    return `${styleText(['blue'], '?')} ${message}`;
+  }
+}
