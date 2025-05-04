@@ -10,6 +10,8 @@ export type Prompt<T extends QuestionList<string>> = {
 };
 
 export type PromptOptions = {
+  stdin?: NodeJS.ReadStream;
+  stdout?: NodeJS.WriteStream;
   onCancel?: () => void;
 };
 
@@ -19,10 +21,15 @@ export type QuestionList<Name extends string> = {
 
 type QuestionOrCallback<T extends Question | null> = (() => T | Promise<T>) | T;
 
-export type SelectChoice = {
-  title?: string;
-  value: string;
-};
+export type SelectChoice =
+  | {
+      title?: string;
+      value: string;
+    }
+  | {
+      title: string;
+      value: unknown;
+    };
 
 export type Question =
   | TextQuestion

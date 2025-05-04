@@ -7,7 +7,7 @@ const prompt = create({
     message: 'What is your name?',
     validate: (value) => value.length > 0,
   },
-  age: {
+  adult: {
     type: 'confirm',
     message: 'Are you over 18?',
   },
@@ -19,7 +19,7 @@ const prompt = create({
       { title: 'Tea', value: 'tea' },
     ],
   },
-  reason: async () => {
+  sugar: async () => {
     const answers = prompt.read();
 
     if (answers.drink === 'coffee') {
@@ -49,9 +49,9 @@ console.log(result);
 expectTypeOf(result).toEqualTypeOf<
   Readonly<{
     name: string;
-    age: boolean;
+    adult: boolean;
     drink: 'coffee' | 'tea';
-    reason: boolean | undefined;
+    sugar: boolean | undefined;
     fruits: ('apple' | 'banana' | 'orange')[];
   }>
 >();

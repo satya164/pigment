@@ -4,6 +4,7 @@ import { SEQUENCE } from './constants.ts';
 import type {
   AnswerList,
   Prompt,
+  PromptOptions,
   QuestionList,
   SelectChoice,
 } from './types.ts';
@@ -14,16 +15,21 @@ export function create<const T extends QuestionList<string>>(
   const context: Record<string, unknown> = {};
 
   return {
-    show: () => show(questions, context),
+    show: (options) => show(questions, context, options),
     read: () => context as Partial<AnswerList<T>>,
   };
 }
 
 async function show<const T extends QuestionList<string>>(
   questions: T,
-  context: Record<string, unknown> = {}
+  context: Record<string, unknown>,
+  {
+    stdin = process.stdin,
+    stdout = process.stdout,
+    onCancel = () => process.exit(0),
+  }: PromptOptions = {}
 ): Promise<AnswerList<T>> {
-  process.stdout.write('\n');
+  stdout.write('\n');
 
   for (const [key, question] of Object.entries(questions)) {
     const q = typeof question === 'function' ? await question() : question;
@@ -32,39 +38,56 @@ async function show<const T extends QuestionList<string>>(
       continue;
     }
 
+    const options = {
+      stdin,
+      stdout,
+      onCancel,
+    };
+
     switch (q.type) {
       case 'text':
-        context[key] = await text(q.message);
+        context[key] = await text(q.message, options);
         break;
       case 'select':
-        context[key] = await select(q.message, q.choices, false);
+        context[key] = await select(q.message, q.choices, false, options);
         break;
       case 'multiselect':
-        context[key] = await select(q.message, q.choices, true);
+        context[key] = await select(q.message, q.choices, true, options);
         break;
       case 'confirm':
-        context[key] = (await text(q.message)) === 'yes';
+        context[key] = await select(
+          q.message,
+          [
+            { title: 'Yes', value: true },
+            { title: 'No', value: false },
+          ],
+          false,
+          options
+        );
         break;
     }
 
-    process.stdout.write('\n');
+    stdout.write('\n');
   }
 
   return context as AnswerList<T>;
 }
 
-async function text(message: string): Promise<string> {
+async function text(
+  message: string,
+  { stdin, stdout }: Required<PromptOptions>
+): Promise<string> {
   const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: stdin,
+    output: stdout,
   });
 
-  const { update } = section(`${question(message, false)}\n`);
+  const { update } = section(`${question(message, false)}\n`, stdout);
 
   const answer = await rl.question('  ');
 
   // Move up to clear new line added after confirmation
-  process.stdout.write(SEQUENCE.LINE_UP);
+  stdout.write(SEQUENCE.LINE_UP);
 
   update(`${question(message, true)}\n  ${styleText('gray', answer)}\n`);
 
@@ -76,10 +99,11 @@ async function text(message: string): Promise<string> {
 async function select<T extends boolean>(
   message: string,
   choices: SelectChoice[],
-  multiple: T
-): Promise<T extends true ? string[] : string> {
+  multiple: T,
+  { stdin, stdout, onCancel }: Required<PromptOptions>
+): Promise<T extends true ? SelectChoice['value'][] : SelectChoice['value']> {
   let index = 0;
-  let selected: string[] = [];
+  let selected: unknown[] = [];
 
   const getText = (answered: boolean) =>
     [
@@ -100,19 +124,20 @@ async function select<T extends boolean>(
             ? styleText(['gray'], indicator)
             : styleText(['green'], indicator);
 
-        const title = choice.title ?? choice.value;
+        const title =
+          choice.title != null ? choice.title : String(choice.value);
 
         return `  ${prefix} ${i != index || answered ? styleText('gray', title) : title}`;
       }),
     ].join('\n');
 
-  process.stdout.write(SEQUENCE.CURSOR_SHOW);
+  stdout.write(SEQUENCE.CURSOR_SHOW);
 
-  const { update } = section(getText(false));
+  const { update } = section(getText(false), stdout);
 
   // Enable raw mode to capture keypresses
-  process.stdin.setRawMode(true);
-  process.stdin.resume();
+  stdin.setRawMode(true);
+  stdin.resume();
 
   return new Promise((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
@@ -149,28 +174,33 @@ async function select<T extends boolean>(
         }
         case SEQUENCE.ENTER:
         case SEQUENCE.CONTROL_C: {
-          process.stdin.setRawMode(false);
-          process.stdin.removeListener('data', onKeyPress);
-          process.stdin.pause();
+          stdin.setRawMode(false);
+          stdin.removeListener('data', onKeyPress);
+          stdin.pause();
 
-          process.stdout.write(SEQUENCE.CURSOR_HIDE);
+          stdout.write(SEQUENCE.CURSOR_HIDE);
 
           if (key === SEQUENCE.ENTER) {
             update(getText(true));
 
-            process.stdout.write(`\n`);
+            stdout.write(`\n`);
 
             if (multiple) {
-              // @ts-expect-error
               resolve(selected);
             } else {
               const answer = choices[index];
 
-              // @ts-expect-error
-              resolve(answer);
+              if (answer == null) {
+                reject(new Error('Invalid answer'));
+              } else {
+                // @ts-expect-error
+                resolve(answer.value);
+              }
             }
           } else {
-            process.stdout.write('\n\n');
+            stdout.write('\n\n');
+
+            onCancel();
 
             reject(new Error('User cancelled the prompt'));
           }
@@ -180,7 +210,7 @@ async function select<T extends boolean>(
       }
     };
 
-    process.stdin.on('data', onKeyPress);
+    stdin.on('data', onKeyPress);
   });
 }
 
@@ -192,16 +222,16 @@ function question(message: string, answered: boolean) {
   }
 }
 
-function section(message: string) {
-  process.stdout.write(message);
+function section(message: string, stdout: NodeJS.WriteStream) {
+  stdout.write(message);
 
   let previous = message;
 
   const clear = () => {
     const lines = previous.split('\n');
 
-    process.stdout.write('\n');
-    process.stdout.write(
+    stdout.write('\n');
+    stdout.write(
       lines.map(() => `${SEQUENCE.LINE_UP}${SEQUENCE.LINE_CLEAR}`).join('')
     );
   };
@@ -209,7 +239,7 @@ function section(message: string) {
   const update = (text: string) => {
     clear();
 
-    process.stdout.write(text);
+    stdout.write(text);
 
     previous = text;
   };
