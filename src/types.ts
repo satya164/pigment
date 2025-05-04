@@ -10,16 +10,27 @@ export type Prompt<T extends QuestionList<string>> = {
 };
 
 export type PromptOptions = {
+  args?: string[];
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
+  interactive?: boolean;
   onCancel?: () => void;
 };
 
 export type QuestionList<Name extends string> = {
-  [key in Name]: QuestionOrCallback<Question | null>;
+  [key in Name]: QuestionItem<Question | null>;
 };
 
-type QuestionOrCallback<T extends Question | null> = (() => T | Promise<T>) | T;
+type QuestionItem<T extends Question | null> =
+  | (T & {
+      description: string;
+      alias?: string;
+    })
+  | {
+      description: string;
+      alias?: string;
+      prompt(): T | Promise<T>;
+    };
 
 export type SelectChoice =
   | {
@@ -39,7 +50,7 @@ export type Question =
 
 export type AnswerList<Questions extends QuestionList<string>> = FlatType<{
   [key in keyof Questions]: Answer<
-    Questions[key] extends QuestionOrCallback<infer Q> ? Q : never
+    Questions[key] extends QuestionItem<infer Q> ? Q : never
   >;
 }>;
 
@@ -70,14 +81,14 @@ type TextQuestion = BaseQuestion<'text', string>;
 
 type SelectQuestion<Choice extends SelectChoice> = BaseQuestion<
   'select',
-  Choice
+  Choice['value']
 > & {
   choices: Choice[];
 };
 
 type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
   'multiselect',
-  Choice[]
+  Choice['value'][]
 > & {
   choices: Choice[];
 };
