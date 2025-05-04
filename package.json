@@ -1,0 +1,28 @@
+{
+  "name": "typed-prompt",
+  "version": "1.0.0",
+  "author": "Satyajit Sahoo <satyajit.happy@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types src/index.test.ts",
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "expect-type": "^1.2.1"
+  }
+}
