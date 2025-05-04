@@ -11,7 +11,7 @@ export type Prompt<T extends QuestionList<string>> = {
 
 export type PromptOptions = {
   onCancel?: () => void;
-}
+};
 
 export type QuestionList<Name extends string> = {
   [key in Name]: QuestionOrCallback<Question | null>;
@@ -19,10 +19,15 @@ export type QuestionList<Name extends string> = {
 
 type QuestionOrCallback<T extends Question | null> = (() => T | Promise<T>) | T;
 
+export type SelectChoice = {
+  title?: string;
+  value: string;
+};
+
 export type Question =
   | TextQuestion
-  | SelectQuestion<string>
-  | MultiSelectQuestion<string>
+  | SelectQuestion<SelectChoice>
+  | MultiSelectQuestion<SelectChoice>
   | ConfirmQuestion;
 
 export type AnswerList<Questions extends QuestionList<string>> = FlatType<{
@@ -37,9 +42,9 @@ type Answer<T extends Question | null> = null extends T
 
 type AnswerInternal<T extends Question> =
   T extends SelectQuestion<infer Choice>
-    ? Choice
+    ? Choice['value']
     : T extends MultiSelectQuestion<infer Choice>
-      ? Choice[]
+      ? Choice['value'][]
       : T extends ConfirmQuestion
         ? boolean
         : T extends TextQuestion
@@ -56,11 +61,14 @@ type BaseQuestion<Type extends PromptType, Value extends unknown> = {
 
 type TextQuestion = BaseQuestion<'text', string>;
 
-type SelectQuestion<Choice extends string> = BaseQuestion<'select', Choice> & {
+type SelectQuestion<Choice extends SelectChoice> = BaseQuestion<
+  'select',
+  Choice
+> & {
   choices: Choice[];
 };
 
-type MultiSelectQuestion<Choice extends string> = BaseQuestion<
+type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
   'multiselect',
   Choice[]
 > & {

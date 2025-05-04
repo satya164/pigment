@@ -14,7 +14,10 @@ const prompt = create({
   drink: {
     type: 'select',
     message: 'What is your favorite drink?',
-    choices: ['coffee', 'tea'],
+    choices: [
+      { title: 'Coffee', value: 'coffee' },
+      { title: 'Tea', value: 'tea' },
+    ],
   },
   reason: async () => {
     const answers = prompt.read();
@@ -31,7 +34,11 @@ const prompt = create({
   fruits: {
     type: 'multiselect',
     message: 'Which fruits do you like?',
-    choices: ['apple', 'banana', 'orange'],
+    choices: [
+      { title: 'Apple', value: 'apple' },
+      { title: 'Banana', value: 'banana' },
+      { title: 'Orange', value: 'orange' },
+    ],
   },
 });
 

@@ -1,7 +1,12 @@
 import * as readline from 'node:readline/promises';
 import { styleText } from 'node:util';
-import { KEYCODES } from './constants.ts';
-import type { AnswerList, Prompt, QuestionList } from './types.ts';
+import { SEQUENCE } from './constants.ts';
+import type {
+  AnswerList,
+  Prompt,
+  QuestionList,
+  SelectChoice,
+} from './types.ts';
 
 export function create<const T extends QuestionList<string>>(
   questions: T
@@ -32,10 +37,10 @@ async function show<const T extends QuestionList<string>>(
         context[key] = await text(q.message);
         break;
       case 'select':
-        context[key] = await select(q.message, q.choices);
+        context[key] = await select(q.message, q.choices, false);
         break;
       case 'multiselect':
-        context[key] = await text(`${q.message} (${q.choices.join(', ')})`);
+        context[key] = await select(q.message, q.choices, true);
         break;
       case 'confirm':
         context[key] = (await text(q.message)) === 'yes';
@@ -54,94 +59,118 @@ async function text(message: string): Promise<string> {
     output: process.stdout,
   });
 
-  const promise = rl.question(`${question(message, false)}\n  `);
+  const { update } = section(`${question(message, false)}\n`);
 
-  const answer = await promise;
+  const answer = await rl.question('  ');
 
-  // Overwrite the previous lines to update the prompt
-  clear(2);
+  // Move up to clear new line added after confirmation
+  process.stdout.write(SEQUENCE.LINE_UP);
 
-  process.stdout.write(
-    `${question(message, true)}\n  ${styleText('gray', answer)}\n`
-  );
+  update(`${question(message, true)}\n  ${styleText('gray', answer)}\n`);
 
   rl.close();
 
   return answer;
 }
 
-async function select(message: string, choices: string[]): Promise<string> {
-  let selected = 0;
+async function select<T extends boolean>(
+  message: string,
+  choices: SelectChoice[],
+  multiple: T
+): Promise<T extends true ? string[] : string> {
+  let index = 0;
+  let selected: string[] = [];
 
   const getText = (answered: boolean) =>
     [
       question(message, answered),
       ...choices.map((choice, i) => {
-        const indicator = i === selected ? '●' : '○';
-        const prefix = answered
-          ? styleText(['gray'], indicator)
-          : i === selected
-            ? styleText(['green'], indicator)
-            : styleText(['white'], indicator);
+        const active = multiple ? selected.includes(choice.value) : i === index;
 
-        return `  ${prefix} ${answered ? styleText('gray', choice) : choice}`;
+        const indicator = multiple
+          ? active
+            ? '◼'
+            : '◻'
+          : active
+            ? '●'
+            : '○';
+
+        const prefix =
+          i != index || answered
+            ? styleText(['gray'], indicator)
+            : styleText(['green'], indicator);
+
+        const title = choice.title ?? choice.value;
+
+        return `  ${prefix} ${i != index || answered ? styleText('gray', title) : title}`;
       }),
     ].join('\n');
 
-  process.stdout.write(KEYCODES.HIDE_CURSOR);
-  process.stdout.write(getText(false));
+  process.stdout.write(SEQUENCE.CURSOR_SHOW);
+
+  const { update } = section(getText(false));
 
   // Enable raw mode to capture keypresses
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
-  return new Promise<string>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
       const key = data.toString();
 
       switch (key) {
-        case KEYCODES.ARROW_UP:
-        case KEYCODES.ARROW_DOWN: {
-          selected = Math.min(
-            Math.max(
-              key === KEYCODES.ARROW_UP ? selected - 1 : selected + 1,
-              0
-            ),
+        case SEQUENCE.ARROW_UP:
+        case SEQUENCE.ARROW_DOWN: {
+          index = Math.min(
+            Math.max(key === SEQUENCE.ARROW_UP ? index - 1 : index + 1, 0),
             choices.length - 1
           );
 
-          const text = getText(false);
-
-          clear(text.split('\n').length);
-
-          process.stdout.write(`\n${text}`);
+          update(getText(false));
 
           break;
         }
-        case KEYCODES.ENTER:
-        case KEYCODES.CONTROL_C: {
+        case SEQUENCE.SPACE: {
+          if (multiple) {
+            const choice = choices[index];
+
+            if (choice !== undefined) {
+              if (selected.includes(choice.value)) {
+                selected = selected.filter((c) => c !== choice.value);
+              } else {
+                selected.push(choice.value);
+              }
+            }
+
+            update(getText(false));
+          }
+
+          break;
+        }
+        case SEQUENCE.ENTER:
+        case SEQUENCE.CONTROL_C: {
           process.stdin.setRawMode(false);
           process.stdin.removeListener('data', onKeyPress);
           process.stdin.pause();
 
-          process.stdout.write(KEYCODES.SHOW_CURSOR);
+          process.stdout.write(SEQUENCE.CURSOR_HIDE);
 
-          if (key === KEYCODES.ENTER) {
-            const text = getText(true);
+          if (key === SEQUENCE.ENTER) {
+            update(getText(true));
 
-            clear(text.split('\n').length);
+            process.stdout.write(`\n`);
 
-            process.stdout.write(`\n${text}\n`);
-
-            const answer = choices[selected];
-
-            if (answer === undefined) {
-              reject(new Error('Invalid answer'));
+            if (multiple) {
+              // @ts-expect-error
+              resolve(selected);
             } else {
+              const answer = choices[index];
+
+              // @ts-expect-error
               resolve(answer);
             }
           } else {
-            process.stdout.write('\n');
+            process.stdout.write('\n\n');
 
             reject(new Error('User cancelled the prompt'));
           }
@@ -155,16 +184,38 @@ async function select(message: string, choices: string[]): Promise<string> {
   });
 }
 
-function clear(lines: number) {
-  process.stdout.write(
-    `${Array.from({ length: lines }, () => '\x1b[1A').join('')}\x1b[2K`
-  );
-}
-
 function question(message: string, answered: boolean) {
   if (answered) {
     return `${styleText(['green'], '✔')} ${message}`;
   } else {
     return `${styleText(['blue'], '?')} ${message}`;
   }
+}
+
+function section(message: string) {
+  process.stdout.write(message);
+
+  let previous = message;
+
+  const clear = () => {
+    const lines = previous.split('\n');
+
+    process.stdout.write('\n');
+    process.stdout.write(
+      lines.map(() => `${SEQUENCE.LINE_UP}${SEQUENCE.LINE_CLEAR}`).join('')
+    );
+  };
+
+  const update = (text: string) => {
+    clear();
+
+    process.stdout.write(text);
+
+    previous = text;
+  };
+
+  return {
+    update,
+    clear,
+  };
 }
