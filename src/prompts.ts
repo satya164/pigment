@@ -1,4 +1,4 @@
-import * as readline from 'node:readline/promises';
+import { createInterface } from 'node:readline/promises';
 import * as components from './components.ts';
 import { SEQUENCE } from './constants.ts';
 import type { SelectChoice } from './types.ts';
@@ -11,11 +11,17 @@ type QuestionOptions = {
 
 export async function text(
   message: string,
-  { stdin, stdout }: QuestionOptions
+  { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
-  const rl = readline.createInterface({
+  const rl = createInterface({
     input: stdin,
     output: stdout,
+  });
+
+  rl.on('SIGINT', () => {
+    rl.close();
+    stdout.write('\n\n');
+    onCancel();
   });
 
   const text = components.text({
@@ -23,20 +29,17 @@ export async function text(
     done: false,
   });
 
-  const lines = text.split('\n');
-  const last = lines.pop() ?? '';
+  const { update } = section(text, stdout);
 
-  const { update } = section(lines.join('\n') + '\n', stdout);
+  const answer = await rl.question(text.split('\n').pop() ?? '');
 
-  const answer = await rl.question(last);
-
-  // Move up to clear new line added after confirmation
-  stdout.write(SEQUENCE.LINE_UP);
+  // Clear the line added by the question
+  stdout.write(`${SEQUENCE.LINE_UP}${SEQUENCE.LINE_CLEAR}`);
 
   update(
     components.text({
       message,
-      done: false,
+      done: true,
       answer,
     })
   );

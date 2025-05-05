@@ -1,6 +1,8 @@
 export const SEQUENCE = {
   ARROW_UP: '\u001B[A',
   ARROW_DOWN: '\u001B[B',
+  ARROW_LEFT: '\u001B[C',
+  ARROW_RIGHT: '\u001B[D',
   SPACE: ' ',
   ENTER: '\r',
   CONTROL_C: '\u0003',
