@@ -1,6 +1,7 @@
+import ansiEscapes from 'ansi-escapes';
 import { createInterface } from 'node:readline/promises';
 import * as components from './components.ts';
-import { SEQUENCE } from './constants.ts';
+import { KEYCODES } from './constants.ts';
 import type { SelectChoice } from './types.ts';
 
 type QuestionBase = {
@@ -57,7 +58,7 @@ export async function text(
 
   while (true) {
     // Clear the line added by the question
-    stdout.write(`${SEQUENCE.LINE_UP}${SEQUENCE.LINE_CLEAR}`);
+    stdout.write(`${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLine}`);
 
     if (validate) {
       const validation = validate(answer);
@@ -98,7 +99,7 @@ export async function text(
     const count = error.split('\n').length;
 
     stdout.moveCursor(0, count);
-    stdout.write(SEQUENCE.LINE_CLEAR.repeat(count));
+    stdout.write(ansiEscapes.eraseLines(count));
     stdout.moveCursor(0, -count);
   }
 
@@ -157,7 +158,7 @@ export async function select<T extends boolean>(
     return `${text}${error ? `\n${error}` : ''}`;
   };
 
-  stdout.write(SEQUENCE.CURSOR_HIDE);
+  stdout.write(ansiEscapes.cursorHide);
 
   const { update } = section(getText(false), stdout);
 
@@ -170,14 +171,14 @@ export async function select<T extends boolean>(
       const key = data.toString();
 
       switch (key) {
-        case SEQUENCE.ARROW_UP:
-        case SEQUENCE.ARROW_DOWN:
-        case SEQUENCE.ARROW_LEFT:
-        case SEQUENCE.ARROW_RIGHT: {
+        case KEYCODES.ARROW_UP:
+        case KEYCODES.ARROW_DOWN:
+        case KEYCODES.ARROW_LEFT:
+        case KEYCODES.ARROW_RIGHT: {
           validation = true;
           index = Math.min(
             Math.max(
-              key === SEQUENCE.ARROW_UP || key === SEQUENCE.ARROW_LEFT
+              key === KEYCODES.ARROW_UP || key === KEYCODES.ARROW_LEFT
                 ? index - 1
                 : index + 1,
               0
@@ -189,7 +190,7 @@ export async function select<T extends boolean>(
 
           break;
         }
-        case SEQUENCE.SPACE: {
+        case KEYCODES.SPACE: {
           if (type === 'multiselect') {
             validation = true;
 
@@ -208,7 +209,7 @@ export async function select<T extends boolean>(
 
           break;
         }
-        case SEQUENCE.ENTER:
+        case KEYCODES.ENTER:
           if (question.validate) {
             validation = question.validate(
               type === 'multiselect' ? selected : choices[index]?.value
@@ -222,7 +223,7 @@ export async function select<T extends boolean>(
 
             update(getText(true));
 
-            stdout.write(SEQUENCE.CURSOR_SHOW);
+            stdout.write(ansiEscapes.cursorShow);
             stdout.write(`\n`);
 
             if (type === 'multiselect') {
@@ -242,12 +243,12 @@ export async function select<T extends boolean>(
           }
 
           break;
-        case SEQUENCE.CONTROL_C: {
+        case KEYCODES.CONTROL_C: {
           stdin.setRawMode(false);
           stdin.removeListener('data', onKeyPress);
           stdin.pause();
 
-          stdout.write(SEQUENCE.CURSOR_SHOW);
+          stdout.write(ansiEscapes.cursorShow);
           stdout.write('\n\n');
 
           onCancel();
@@ -273,7 +274,7 @@ function section(message: string, stdout: NodeJS.WriteStream) {
 
     stdout.write('\n');
     stdout.write(
-      `${SEQUENCE.LINE_UP}${SEQUENCE.LINE_CLEAR}`.repeat(lines.length)
+      `${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLines(lines.length)}`
     );
   };
 
