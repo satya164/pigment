@@ -150,5 +150,7 @@ async function show<const T extends QuestionList<string>>(
     stdout.write('\n');
   }
 
+  stdout.write('\n');
+
   return context as AnswerList<T>;
 }

@@ -1,5 +1,5 @@
 import * as readline from 'node:readline/promises';
-import { styleText } from 'node:util';
+import * as components from './components.ts';
 import { SEQUENCE } from './constants.ts';
 import type { SelectChoice } from './types.ts';
 
@@ -18,14 +18,28 @@ export async function text(
     output: stdout,
   });
 
-  const { update } = section(`${question(message, false)}\n`, stdout);
+  const text = components.text({
+    message,
+    done: false,
+  });
 
-  const answer = await rl.question('  ');
+  const lines = text.split('\n');
+  const last = lines.pop() ?? '';
+
+  const { update } = section(lines.join('\n') + '\n', stdout);
+
+  const answer = await rl.question(last);
 
   // Move up to clear new line added after confirmation
   stdout.write(SEQUENCE.LINE_UP);
 
-  update(`${question(message, true)}\n  ${styleText('gray', answer)}`);
+  update(
+    components.text({
+      message,
+      done: false,
+      answer,
+    })
+  );
 
   rl.close();
 
@@ -52,30 +66,20 @@ export async function select<T extends boolean>(
   let selected: unknown[] = [];
 
   const getText = (answered: boolean) =>
-    [
-      question(message, answered),
-      ...choices.map((choice, i) => {
-        const active = multiple ? selected.includes(choice.value) : i === index;
-
-        const indicator = multiple
-          ? active
-            ? '◼'
-            : '◻'
-          : active
-            ? '●'
-            : '○';
-
-        const prefix =
-          i != index || answered
-            ? styleText(['gray'], indicator)
-            : styleText(['green'], indicator);
-
-        const title =
-          choice.title != null ? choice.title : String(choice.value);
-
-        return `  ${prefix} ${i != index || answered ? styleText('gray', title) : title}`;
-      }),
-    ].join('\n');
+    multiple
+      ? components.multiselect({
+          message,
+          choices,
+          done: answered,
+          index,
+          answer: selected,
+        })
+      : components.select({
+          message,
+          choices,
+          done: answered,
+          index,
+        });
 
   stdout.write(SEQUENCE.CURSOR_HIDE);
 
@@ -158,14 +162,6 @@ export async function select<T extends boolean>(
 
     stdin.on('data', onKeyPress);
   });
-}
-
-function question(message: string, answered: boolean) {
-  if (answered) {
-    return `${styleText(['green'], '✔')} ${message}`;
-  } else {
-    return `${styleText(['blue'], '?')} ${message}`;
-  }
 }
 
 function section(message: string, stdout: NodeJS.WriteStream) {
