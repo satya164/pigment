@@ -48,6 +48,8 @@ const prompt = create('$0 <name>', {
     description: 'Animals that the user likes',
     message: 'Which animals do you like?',
     choices: [{ title: 'Otter', value: 'otter' }],
+    validate: (value) =>
+      value.length > 0 ? true : 'Please select at least one animal',
   },
   fruits: {
     type: 'multiselect',

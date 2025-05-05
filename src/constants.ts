@@ -9,5 +9,7 @@ export const SEQUENCE = {
   CURSOR_SHOW: '\x1B[?25h',
   CURSOR_HIDE: '\x1B[?25l',
   LINE_UP: '\x1b[1A',
+  LINE_LEFT: '\x1b[1C',
+  LINE_START: '\x1b[1G',
   LINE_CLEAR: '\x1b[2K',
 } as const;

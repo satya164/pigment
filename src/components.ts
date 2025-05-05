@@ -116,3 +116,17 @@ function question({ message, done }: { message: string; done: boolean }) {
     return `${styleText(['blue'], '?')} ${message}`;
   }
 }
+
+export function error({
+  validation,
+}: {
+  validation: boolean | string | undefined;
+}) {
+  const hint = validation === false ? 'Invalid input' : validation;
+
+  if (hint !== null && hint !== true) {
+    return styleText(['red', 'italic'], `  ${hint}`);
+  }
+
+  return '';
+}
