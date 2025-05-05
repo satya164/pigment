@@ -126,24 +126,12 @@ async function show<const T extends QuestionList<string>>(
 
     switch (q.type) {
       case 'text':
-        context[key] = await text(q.message, options);
+        context[key] = await text(q, options);
         break;
       case 'select':
-        context[key] = await select(q.message, q.choices, false, options);
-        break;
       case 'multiselect':
-        context[key] = await select(q.message, q.choices, true, options);
-        break;
       case 'confirm':
-        context[key] = await select(
-          q.message,
-          [
-            { title: 'Yes', value: true },
-            { title: 'No', value: false },
-          ],
-          false,
-          options
-        );
+        context[key] = await select(q, options);
         break;
     }
 

@@ -3,6 +3,24 @@ import * as components from './components.ts';
 import { SEQUENCE } from './constants.ts';
 import type { SelectChoice } from './types.ts';
 
+type QuestionBase = {
+  message: string;
+};
+
+type QuestionText = QuestionBase;
+
+type QuestionSelect = QuestionBase &
+  (
+    | {
+        type: 'select' | 'multiselect';
+        choices: SelectChoice[];
+      }
+    | {
+        type: 'confirm';
+        choices?: never;
+      }
+  );
+
 type QuestionOptions = {
   stdin: NodeJS.ReadStream;
   stdout: NodeJS.WriteStream;
@@ -10,7 +28,7 @@ type QuestionOptions = {
 };
 
 export async function text(
-  message: string,
+  { message }: QuestionText,
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
   const rl = createInterface({
@@ -50,13 +68,21 @@ export async function text(
 }
 
 export async function select<T extends boolean>(
-  message: string,
-  choices: SelectChoice[],
-  multiple: T,
+  question: QuestionSelect,
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<T extends true ? SelectChoice['value'][] : SelectChoice['value']> {
+  const message = question.message;
+  const type = question.type === 'confirm' ? 'select' : question.type;
+  const choices =
+    question.type === 'confirm'
+      ? [
+          { title: 'Yes', value: true },
+          { title: 'No', value: false },
+        ]
+      : question.choices;
+
   // Don't prompt if there's only one choice
-  if (choices.length === 1 && !multiple) {
+  if (choices.length === 1 && type === 'select') {
     const choice = choices[0];
 
     if (choice != null) {
@@ -69,7 +95,7 @@ export async function select<T extends boolean>(
   let selected: unknown[] = [];
 
   const getText = (answered: boolean) =>
-    multiple
+    type === 'multiselect'
       ? components.multiselect({
           message,
           choices,
@@ -98,9 +124,16 @@ export async function select<T extends boolean>(
 
       switch (key) {
         case SEQUENCE.ARROW_UP:
-        case SEQUENCE.ARROW_DOWN: {
+        case SEQUENCE.ARROW_DOWN:
+        case SEQUENCE.ARROW_LEFT:
+        case SEQUENCE.ARROW_RIGHT: {
           index = Math.min(
-            Math.max(key === SEQUENCE.ARROW_UP ? index - 1 : index + 1, 0),
+            Math.max(
+              key === SEQUENCE.ARROW_UP || key === SEQUENCE.ARROW_LEFT
+                ? index - 1
+                : index + 1,
+              0
+            ),
             choices.length - 1
           );
 
@@ -109,7 +142,7 @@ export async function select<T extends boolean>(
           break;
         }
         case SEQUENCE.SPACE: {
-          if (multiple) {
+          if (type === 'multiselect') {
             const choice = choices[index];
 
             if (choice !== undefined) {
@@ -138,7 +171,7 @@ export async function select<T extends boolean>(
 
             stdout.write(`\n`);
 
-            if (multiple) {
+            if (type === 'multiselect') {
               resolve(selected);
             } else {
               const answer = choices[index];
