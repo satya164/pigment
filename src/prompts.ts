@@ -145,9 +145,9 @@ export async function select<T extends boolean>(
       question.type === 'confirm'
         ? components.confirm({
             message,
-            done: answered,
             choices,
             index,
+            done: answered,
           })
         : question.type === 'multiselect'
           ? components.multiselect({

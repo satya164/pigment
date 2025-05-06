@@ -28,7 +28,7 @@ export function confirm({
   done,
 }: {
   message: string;
-  choices: { title?: string; value: boolean }[];
+  choices: { title?: string; value: unknown }[];
   index: number;
   done: boolean;
 }) {
