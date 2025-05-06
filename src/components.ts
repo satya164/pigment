@@ -1,6 +1,7 @@
 import { styleText } from 'node:util';
 
 const theme = {
+  message: 'bold',
   selected: 'cyan',
   question: 'cyan',
   done: 'green',
@@ -146,9 +147,9 @@ function checkbox({
 
 function question({ message, done }: { message: string; done: boolean }) {
   if (done) {
-    return `${styleText([theme.done], '✔')} ${message}`;
+    return `${styleText(theme.done, '✔')} ${styleText(theme.message, message)}`;
   } else {
-    return `${styleText([theme.question], '?')} ${message}`;
+    return `${styleText(theme.question, '?')} ${styleText(theme.message, message)}`;
   }
 }
 
