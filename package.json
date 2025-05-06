@@ -17,14 +17,14 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
   },
-  "devDependencies": {
-    "@types/node": "^22.15.3",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
-  },
   "dependencies": {
     "ansi-escapes": "^7.0.0",
-    "expect-type": "^1.2.1",
     "wrap-ansi": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "expect-type": "^1.2.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
   }
 }
