@@ -1,5 +1,6 @@
 import { parseArgs } from './args.ts';
-import { select, text } from './prompts.ts';
+import { select } from './select.ts';
+import { text } from './text.ts';
 import type {
   AnswerList,
   Prompt,
