@@ -1,5 +1,14 @@
 import { styleText } from 'node:util';
 
+const theme = {
+  selected: 'cyan',
+  question: 'cyan',
+  done: 'green',
+  hint: 'dim',
+  separator: 'gray',
+  error: ['red', 'italic'],
+} as const satisfies Record<string, Parameters<typeof styleText>[0]>;
+
 export function text({
   message,
   answer,
@@ -9,7 +18,7 @@ export function text({
   answer?: string;
   done: boolean;
 }) {
-  return `${question({ message, done })}\n  ${answer ? styleText('dim', answer) : ''}`;
+  return `${question({ message, done })}\n  ${answer ? styleText(theme.hint, answer) : ''}`;
 }
 
 export function confirm({
@@ -28,7 +37,7 @@ export function confirm({
 
     return [
       question({ message, done }),
-      `  ${styleText('dim', String(answer))}`,
+      `  ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
@@ -37,12 +46,12 @@ export function confirm({
       const selected = i === index;
 
       if (selected) {
-        return styleText('green', String(choice.title ?? choice.value));
+        return styleText(theme.selected, String(choice.title ?? choice.value));
       }
 
       return choice.title;
     })
-    .join(styleText('dim', ' / '))}`;
+    .join(styleText(theme.separator, ' / '))}`;
 }
 
 export function select({
@@ -61,7 +70,7 @@ export function select({
 
     return [
       question({ message, done }),
-      `  ${styleText('dim', String(answer))}`,
+      `  ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
@@ -96,7 +105,7 @@ export function multiselect({
     return [
       question({ message, done }),
       `  ${styleText(
-        'dim',
+        theme.hint,
         choices
           .filter((choice) => answer.includes(choice.value))
           .map((choice) => choice.title ?? choice.value)
@@ -128,18 +137,18 @@ function checkbox({
   choice: { title?: string; description?: string; value: unknown };
   active: boolean;
 }) {
-  const prefix = active ? styleText('green', `❯ ${icon}`) : `  ${icon}`;
+  const prefix = active ? styleText(theme.selected, `❯ ${icon}`) : `  ${icon}`;
 
   const title = choice.title != null ? choice.title : String(choice.value);
 
-  return `${prefix} ${active ? styleText('green', title) : title}${choice.description ? `\n    ${styleText('dim', choice.description)}` : ''}`;
+  return `${prefix} ${active ? styleText(theme.selected, title) : title}${choice.description ? `\n    ${styleText(theme.hint, choice.description)}` : ''}`;
 }
 
 function question({ message, done }: { message: string; done: boolean }) {
   if (done) {
-    return `${styleText(['green'], '✔')} ${message}`;
+    return `${styleText([theme.done], '✔')} ${message}`;
   } else {
-    return `${styleText(['blue'], '?')} ${message}`;
+    return `${styleText([theme.question], '?')} ${message}`;
   }
 }
 
@@ -151,7 +160,7 @@ export function error({
   const hint = validation === false ? 'Invalid input' : validation;
 
   if (hint !== null && hint !== true) {
-    return styleText(['red', 'italic'], `  ${hint}`);
+    return styleText(theme.error, `  ${hint}`);
   }
 
   return '';
