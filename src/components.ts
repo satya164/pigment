@@ -12,6 +12,39 @@ export function text({
   return `${question({ message, done })}\n  ${answer ? styleText('dim', answer) : ''}`;
 }
 
+export function confirm({
+  message,
+  choices,
+  index,
+  done,
+}: {
+  message: string;
+  choices: { title?: string; value: boolean }[];
+  index: number;
+  done: boolean;
+}) {
+  if (done) {
+    const answer = choices[index]?.title ?? choices[index]?.value;
+
+    return [
+      question({ message, done }),
+      `  ${styleText('dim', String(answer))}`,
+    ].join('\n');
+  }
+
+  return `${question({ message, done })}\n  ${choices
+    .map((choice, i) => {
+      const selected = i === index;
+
+      if (selected) {
+        return styleText('green', String(choice.title ?? choice.value));
+      }
+
+      return choice.title;
+    })
+    .join(styleText('dim', ' / '))}`;
+}
+
 export function select({
   message,
   choices,

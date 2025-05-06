@@ -142,20 +142,27 @@ export async function select<T extends boolean>(
 
   const getText = (answered: boolean) => {
     const text =
-      type === 'multiselect'
-        ? components.multiselect({
+      question.type === 'confirm'
+        ? components.confirm({
             message,
-            choices,
             done: answered,
+            choices,
             index,
-            answer: selected,
           })
-        : components.select({
-            message,
-            choices,
-            done: answered,
-            index,
-          });
+        : question.type === 'multiselect'
+          ? components.multiselect({
+              message,
+              choices,
+              index,
+              answer: selected,
+              done: answered,
+            })
+          : components.select({
+              message,
+              choices,
+              index,
+              done: answered,
+            });
 
     const error = validation !== true ? components.error({ validation }) : null;
 
