@@ -1,8 +1,8 @@
 import ansiEscapes from 'ansi-escapes';
-import { createLogUpdate } from 'log-update';
 import { createInterface } from 'node:readline/promises';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
+import { render } from './render.ts';
 import type { SelectChoice } from './types.ts';
 
 type QuestionBase = {
@@ -53,11 +53,7 @@ export async function text(
   const lines = text.split('\n');
   const prompt = lines.pop() ?? '';
 
-  const log = createLogUpdate(stdout, {
-    showCursor: true,
-  });
-
-  log(lines.join('\n'));
+  const { update } = render(text, stdout);
 
   let error: string | undefined;
   let answer = await rl.question(prompt);
@@ -93,7 +89,7 @@ export async function text(
     }
   }
 
-  log(
+  update(
     components.text({
       message,
       done: true,
@@ -109,7 +105,7 @@ export async function text(
     stdout.moveCursor(0, -count);
   }
 
-  stdout.write('\n');
+  stdout.write('\n\n');
 
   rl.close();
 
@@ -168,9 +164,7 @@ export async function select<T extends boolean>(
 
   stdout.write(ansiEscapes.cursorHide);
 
-  const log = createLogUpdate(stdout);
-
-  log(getText(false));
+  const { update } = render(getText(false), stdout);
 
   return new Promise((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
@@ -192,7 +186,7 @@ export async function select<T extends boolean>(
             choices.length - 1
           );
 
-          log(getText(false));
+          update(getText(false));
 
           break;
         }
@@ -210,7 +204,7 @@ export async function select<T extends boolean>(
               }
             }
 
-            log(getText(false));
+            update(getText(false));
           }
 
           break;
@@ -225,12 +219,14 @@ export async function select<T extends boolean>(
           if (validation === true) {
             stdin.removeListener('data', onKeyPress);
 
-            log(getText(true));
+            update(getText(true));
 
             stdout.write(ansiEscapes.cursorShow);
             stdout.write(`\n`);
 
             if (type === 'multiselect') {
+              stdout.write('\n');
+
               resolve(selected);
             } else {
               const answer = choices[index];
@@ -238,12 +234,14 @@ export async function select<T extends boolean>(
               if (answer == null) {
                 reject(new Error('Invalid answer'));
               } else {
+                stdout.write('\n');
+
                 // @ts-expect-error
                 resolve(answer.value);
               }
             }
           } else {
-            log(getText(false));
+            update(getText(false));
           }
 
           break;

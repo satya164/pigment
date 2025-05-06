@@ -25,6 +25,6 @@
   "dependencies": {
     "ansi-escapes": "^7.0.0",
     "expect-type": "^1.2.1",
-    "log-update": "^6.1.0"
+    "wrap-ansi": "^9.0.0"
   }
 }
