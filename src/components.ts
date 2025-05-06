@@ -9,7 +9,7 @@ export function text({
   answer?: string;
   done: boolean;
 }) {
-  return `${question({ message, done })}\n  ${answer ? styleText('gray', answer) : ''}`;
+  return `${question({ message, done })}\n  ${answer ? styleText('dim', answer) : ''}`;
 }
 
 export function select({
@@ -28,7 +28,7 @@ export function select({
 
     return [
       question({ message, done }),
-      `  ${styleText('gray', String(answer))}`,
+      `  ${styleText('dim', String(answer))}`,
     ].join('\n');
   }
 
@@ -41,7 +41,6 @@ export function select({
         icon: selected ? '●' : '○',
         choice,
         active: selected,
-        done,
       });
     }),
   ].join('\n');
@@ -64,7 +63,7 @@ export function multiselect({
     return [
       question({ message, done }),
       `  ${styleText(
-        'gray',
+        'dim',
         choices
           .filter((choice) => answer.includes(choice.value))
           .map((choice) => choice.title ?? choice.value)
@@ -82,7 +81,6 @@ export function multiselect({
         icon: selected ? '◼' : '◻',
         choice,
         active: i === index,
-        done,
       });
     }),
   ].join('\n');
@@ -92,21 +90,16 @@ function checkbox({
   icon,
   choice,
   active,
-  done,
 }: {
   icon: string;
-  choice: { title?: string; value: unknown };
+  choice: { title?: string; description?: string; value: unknown };
   active: boolean;
-  done: boolean;
 }) {
-  const prefix = styleText(
-    !active || done ? 'gray' : 'green',
-    active ? `❯ ${icon}` : `  ${icon}`
-  );
+  const prefix = active ? styleText('green', `❯ ${icon}`) : `  ${icon}`;
 
   const title = choice.title != null ? choice.title : String(choice.value);
 
-  return `${prefix} ${!active || done ? styleText('gray', title) : title}`;
+  return `${prefix} ${active ? styleText('green', title) : title}${choice.description ? `\n    ${styleText('dim', choice.description)}` : ''}`;
 }
 
 function question({ message, done }: { message: string; done: boolean }) {

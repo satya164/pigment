@@ -35,10 +35,12 @@ type QuestionItem<T extends Question | null> =
 export type SelectChoice =
   | {
       title?: string;
+      description?: string;
       value: string;
     }
   | {
       title: string;
+      description?: string;
       value: unknown;
     };
 

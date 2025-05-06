@@ -24,8 +24,17 @@ const prompt = create('$0 <name>', {
     description: 'Favorite drink of the user',
     message: 'What is your favorite drink?',
     choices: [
-      { title: 'Coffee', value: 'coffee' },
-      { title: 'Tea', value: 'tea' },
+      {
+        title: 'Coffee',
+        description: 'A hot drink made from roasted coffee beans',
+        value: 'coffee',
+      },
+      {
+        title: 'Tea',
+        description:
+          'A hot drink made by infusing dried tea leaves in boiling water',
+        value: 'tea',
+      },
     ],
   },
   sugar: {
