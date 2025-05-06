@@ -143,8 +143,6 @@ async function show<const T extends QuestionList<string>>(
       stdin.setRawMode(false);
       stdin.pause();
     }
-
-    stdout.write('\n');
   }
 
   stdout.write('\n');

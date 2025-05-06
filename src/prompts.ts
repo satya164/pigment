@@ -1,4 +1,5 @@
 import ansiEscapes from 'ansi-escapes';
+import { createLogUpdate } from 'log-update';
 import { createInterface } from 'node:readline/promises';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
@@ -49,9 +50,14 @@ export async function text(
     done: false,
   });
 
-  const prompt = text.split('\n').pop() ?? '';
+  const lines = text.split('\n');
+  const prompt = lines.pop() ?? '';
 
-  const { update } = section(text, stdout);
+  const log = createLogUpdate(stdout, {
+    showCursor: true,
+  });
+
+  log(lines.join('\n'));
 
   let error: string | undefined;
   let answer = await rl.question(prompt);
@@ -87,7 +93,7 @@ export async function text(
     }
   }
 
-  update(
+  log(
     components.text({
       message,
       done: true,
@@ -102,6 +108,8 @@ export async function text(
     stdout.write(ansiEscapes.eraseLines(count));
     stdout.moveCursor(0, -count);
   }
+
+  stdout.write('\n');
 
   rl.close();
 
@@ -160,7 +168,9 @@ export async function select<T extends boolean>(
 
   stdout.write(ansiEscapes.cursorHide);
 
-  const { update } = section(getText(false), stdout);
+  const log = createLogUpdate(stdout);
+
+  log(getText(false));
 
   return new Promise((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
@@ -182,7 +192,7 @@ export async function select<T extends boolean>(
             choices.length - 1
           );
 
-          update(getText(false));
+          log(getText(false));
 
           break;
         }
@@ -200,7 +210,7 @@ export async function select<T extends boolean>(
               }
             }
 
-            update(getText(false));
+            log(getText(false));
           }
 
           break;
@@ -215,7 +225,7 @@ export async function select<T extends boolean>(
           if (validation === true) {
             stdin.removeListener('data', onKeyPress);
 
-            update(getText(true));
+            log(getText(true));
 
             stdout.write(ansiEscapes.cursorShow);
             stdout.write(`\n`);
@@ -233,7 +243,7 @@ export async function select<T extends boolean>(
               }
             }
           } else {
-            update(getText(false));
+            log(getText(false));
           }
 
           break;
@@ -254,32 +264,4 @@ export async function select<T extends boolean>(
 
     stdin.on('data', onKeyPress);
   });
-}
-
-function section(message: string, stdout: NodeJS.WriteStream) {
-  stdout.write(message);
-
-  let previous = message;
-
-  const clear = () => {
-    const lines = previous.split('\n');
-
-    stdout.write('\n');
-    stdout.write(
-      `${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLines(lines.length)}`
-    );
-  };
-
-  const update = (text: string) => {
-    clear();
-
-    stdout.write(text);
-
-    previous = text;
-  };
-
-  return {
-    update,
-    clear,
-  };
 }
