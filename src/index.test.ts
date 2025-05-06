@@ -6,6 +6,7 @@ const prompt = create('$0 <name>', {
     type: 'text',
     description: 'Name of the user',
     message: 'What is your name?',
+    initial: 'John Doe',
     validate: (value) => value.length > 3,
   },
   planet: {
@@ -18,6 +19,7 @@ const prompt = create('$0 <name>', {
     type: 'confirm',
     description: 'Whether the user is an adult',
     message: 'Are you over 18?',
+    initial: false,
   },
   drink: {
     type: 'select',
@@ -36,6 +38,7 @@ const prompt = create('$0 <name>', {
         value: 'tea',
       },
     ],
+    initial: 'tea',
   },
   sugar: {
     description: 'Whether the user likes sugar in their coffee',
@@ -59,6 +62,7 @@ const prompt = create('$0 <name>', {
     choices: [{ title: 'Otter', value: 'otter' }],
     validate: (value) =>
       value.length > 0 ? true : 'Please select at least one animal',
+    initial: ['otter'],
   },
   fruits: {
     type: 'multiselect',
@@ -69,6 +73,7 @@ const prompt = create('$0 <name>', {
       { title: 'Banana', value: 'banana' },
       { title: 'Orange', value: 'orange' },
     ],
+    initial: ['apple', 'banana'],
   },
   feeling: {
     type: 'text',

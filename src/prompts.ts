@@ -1,28 +1,16 @@
 import ansiEscapes from 'ansi-escapes';
 import { createInterface } from 'node:readline/promises';
+import { styleText } from 'node:util';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
-import type { SelectChoice } from './types.ts';
-
-type QuestionBase = {
-  message: string;
-  validate?: (value: any) => string | boolean;
-};
-
-type QuestionText = QuestionBase;
-
-type QuestionSelect = QuestionBase &
-  (
-    | {
-        type: 'select' | 'multiselect';
-        choices: SelectChoice[];
-      }
-    | {
-        type: 'confirm';
-        choices?: never;
-      }
-  );
+import type {
+  ConfirmQuestion,
+  MultiSelectQuestion,
+  SelectChoice,
+  SelectQuestion,
+  TextQuestion,
+} from './types.ts';
 
 type QuestionOptions = {
   stdin: NodeJS.ReadStream;
@@ -31,7 +19,7 @@ type QuestionOptions = {
 };
 
 export async function text(
-  { message, validate }: QuestionText,
+  { message, initial, validate }: TextQuestion,
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
   const rl = createInterface({
@@ -39,7 +27,7 @@ export async function text(
     output: stdout,
   });
 
-  rl.on('SIGINT', () => {
+  rl.addListener('SIGINT', () => {
     rl.close();
     stdout.write('\n\n');
     onCancel();
@@ -56,7 +44,55 @@ export async function text(
   const { update } = render(text, stdout);
 
   let error: string | undefined;
-  let answer = await rl.question(prompt);
+
+  let promise = rl.question(prompt);
+  let answer = initial;
+
+  if (initial != null) {
+    stdout.write(styleText(components.theme.hint, initial));
+
+    const onKeyPress = async (data: Buffer) => {
+      const key = data.toString('ascii');
+
+      // Clear the initial value from the prompt unless it's a confirm
+      if (key !== KEYCODES.ENTER) {
+        stdout.cursorTo(prompt.length);
+        stdout.write(ansiEscapes.eraseLine);
+
+        if (
+          key !== KEYCODES.BACKSPACE &&
+          key !== KEYCODES.DELETE &&
+          key !== KEYCODES.ARROW_LEFT &&
+          key !== KEYCODES.ARROW_RIGHT &&
+          key !== KEYCODES.ARROW_UP &&
+          key !== KEYCODES.ARROW_DOWN
+        ) {
+          // Write the data to stdout so it's visible in the prompt
+          stdout.write(data);
+        }
+
+        answer = undefined;
+
+        stdin.removeListener('data', onKeyPress);
+      }
+    };
+
+    stdin.addListener('data', onKeyPress);
+
+    // Also remove the listener when the prompt is closed
+    // So it doesn't affect unrelated prompts
+    rl.addListener('close', () => {
+      stdin.removeListener('data', onKeyPress);
+    });
+  }
+
+  const result = await promise;
+
+  // Only use the result if it's not empty
+  // Or the answer is not set from the initial value
+  if (answer == null || result !== '') {
+    answer = result;
+  }
 
   while (true) {
     // Clear the line added by the question
@@ -112,10 +148,23 @@ export async function text(
   return answer;
 }
 
-export async function select<T extends boolean>(
-  question: QuestionSelect,
+export async function select<
+  T extends
+    | SelectQuestion<SelectChoice>
+    | MultiSelectQuestion<SelectChoice>
+    | ConfirmQuestion,
+>(
+  question: T,
   { stdin, stdout, onCancel }: QuestionOptions
-): Promise<T extends true ? SelectChoice['value'][] : SelectChoice['value']> {
+): Promise<
+  T extends SelectQuestion<infer Choice>
+    ? Choice['value']
+    : T extends MultiSelectQuestion<infer Choice>
+      ? Choice
+      : T extends ConfirmQuestion
+        ? boolean
+        : never
+> {
   const message = question.message;
   const type = question.type === 'confirm' ? 'select' : question.type;
   const choices =
@@ -136,8 +185,18 @@ export async function select<T extends boolean>(
     }
   }
 
-  let index = 0;
-  let selected: unknown[] = [];
+  let index =
+    type === 'multiselect'
+      ? 0
+      : question.initial != null
+        ? choices.findIndex((c) => c.value === question.initial)
+        : 0;
+
+  let selected: unknown[] =
+    type === 'multiselect' && Array.isArray(question.initial)
+      ? question.initial
+      : [];
+
   let validation: string | boolean = true;
 
   const getText = (answered: boolean) => {
@@ -219,6 +278,7 @@ export async function select<T extends boolean>(
         case KEYCODES.ENTER:
           if (question.validate) {
             validation = question.validate(
+              // @ts-expect-error
               type === 'multiselect' ? selected : choices[index]?.value
             );
           }
@@ -234,6 +294,7 @@ export async function select<T extends boolean>(
             if (type === 'multiselect') {
               stdout.write('\n');
 
+              // @ts-expect-error
               resolve(selected);
             } else {
               const answer = choices[index];
@@ -267,6 +328,6 @@ export async function select<T extends boolean>(
       }
     };
 
-    stdin.on('data', onKeyPress);
+    stdin.addListener('data', onKeyPress);
   });
 }

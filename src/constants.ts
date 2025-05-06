@@ -5,5 +5,7 @@ export const KEYCODES = {
   ARROW_LEFT: '\u001B[D',
   SPACE: ' ',
   ENTER: '\r',
+  BACKSPACE: '\b',
+  DELETE: '\u007f',
   CONTROL_C: '\u0003',
 } as const;

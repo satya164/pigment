@@ -76,26 +76,25 @@ type BaseQuestion<Type extends PromptType, Value extends unknown> = {
   message: string;
   validate?: (value: Value) => boolean | string;
   initial?: Value;
-  default?: Value;
 };
 
-type TextQuestion = BaseQuestion<'text', string>;
+export type TextQuestion = BaseQuestion<'text', string>;
 
-type SelectQuestion<Choice extends SelectChoice> = BaseQuestion<
+export type SelectQuestion<Choice extends SelectChoice> = BaseQuestion<
   'select',
   Choice['value']
 > & {
   choices: Choice[];
 };
 
-type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
+export type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
   'multiselect',
   Choice['value'][]
 > & {
   choices: Choice[];
 };
 
-type ConfirmQuestion = BaseQuestion<'confirm', boolean>;
+export type ConfirmQuestion = BaseQuestion<'confirm', boolean>;
 
 type PromptType = 'text' | 'select' | 'multiselect' | 'confirm';
 

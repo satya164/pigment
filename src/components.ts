@@ -1,6 +1,6 @@
 import { styleText } from 'node:util';
 
-const theme = {
+export const theme = {
   message: 'bold',
   selected: 'cyan',
   question: 'cyan',
