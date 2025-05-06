@@ -1,5 +1,6 @@
 import { parseArgs } from './args.ts';
 import { select } from './select.ts';
+import { spinner } from './spinner.ts';
 import { text } from './text.ts';
 import type {
   AnswerList,
@@ -97,7 +98,7 @@ async function show<const T extends QuestionList<string>>(
           break;
       }
 
-      if (!error && q.validate) {
+      if (!error && 'validate' in q && q.validate) {
         // @ts-expect-error
         const valid = q.validate(value);
 
@@ -138,6 +139,9 @@ async function show<const T extends QuestionList<string>>(
         case 'multiselect':
         case 'confirm':
           context[key] = await select(q, options);
+          break;
+        case 'spinner':
+          context[key] = await spinner(q, options);
           break;
       }
     } finally {

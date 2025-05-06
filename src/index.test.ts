@@ -9,6 +9,33 @@ const prompt = create('$0 <name>', {
     initial: 'John Doe',
     validate: (value) => value.length > 3,
   },
+  pokemon: {
+    type: 'spinner',
+    description: 'Pokémon data',
+    message: 'Loading Pokémon…',
+    async task() {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const mimikyu = {
+        name: 'Mimikyu',
+        types: ['ghost', 'fairy'],
+        abilities: ['disguise', 'pickpocket'],
+      };
+
+      const bulbasaur = {
+        name: 'Bulbasaur',
+        types: ['grass', 'poison'],
+        abilities: ['overgrow', 'chlorophyll'],
+      };
+
+      const pokemon = Math.random() > 0.5 ? mimikyu : bulbasaur;
+
+      return {
+        value: pokemon,
+        message: `Loaded ${pokemon.name}`,
+      };
+    },
+  },
   planet: {
     type: 'select',
     description: 'Planet of the user',
@@ -90,6 +117,11 @@ expectTypeOf(result).toEqualTypeOf<
   Readonly<{
     name: string;
     planet: 'earth';
+    pokemon: {
+      name: string;
+      types: string[];
+      abilities: string[];
+    };
     adult: boolean;
     drink: 'coffee' | 'tea';
     sugar: boolean | undefined;

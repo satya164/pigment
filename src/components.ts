@@ -166,3 +166,26 @@ export function error({
 
   return '';
 }
+
+export function spinner({
+  counter,
+  message,
+  answer,
+  done,
+}: {
+  counter: number;
+  message: string;
+  answer?: unknown;
+  done: boolean;
+}) {
+  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
+
+  const index = counter % frames.length;
+  const frame = frames[index];
+
+  if (done) {
+    return `${styleText(theme.done, '✔')} ${styleText(theme.message, message)} ${answer ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
+  } else {
+    return `${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
+  }
+}

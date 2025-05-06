@@ -48,7 +48,8 @@ export type Question =
   | TextQuestion
   | SelectQuestion<SelectChoice>
   | MultiSelectQuestion<SelectChoice>
-  | ConfirmQuestion;
+  | ConfirmQuestion
+  | SpinnerQuestion<unknown>;
 
 export type AnswerList<Questions extends QuestionList<string>> = FlatType<{
   [key in keyof Questions]: Answer<
@@ -69,7 +70,9 @@ type AnswerInternal<T extends Question> =
         ? boolean
         : T extends TextQuestion
           ? string
-          : never;
+          : T extends SpinnerQuestion<infer Result>
+            ? Result
+            : never;
 
 type BaseQuestion<Type extends PromptType, Value extends unknown> = {
   type: Type;
@@ -95,6 +98,15 @@ export type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
 };
 
 export type ConfirmQuestion = BaseQuestion<'confirm', boolean>;
+
+export type SpinnerQuestion<Result> = {
+  type: 'spinner';
+  message: string;
+  task: () => Promise<{
+    value: Result;
+    message?: string;
+  }>;
+};
 
 type PromptType = 'text' | 'select' | 'multiselect' | 'confirm';
 
