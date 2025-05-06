@@ -124,15 +124,24 @@ async function show<const T extends QuestionList<string>>(
       onCancel,
     };
 
-    switch (q.type) {
-      case 'text':
-        context[key] = await text(q, options);
-        break;
-      case 'select':
-      case 'multiselect':
-      case 'confirm':
-        context[key] = await select(q, options);
-        break;
+    // Enable raw mode to capture keypresses
+    stdin.setRawMode(true);
+    stdin.resume();
+
+    try {
+      switch (q.type) {
+        case 'text':
+          context[key] = await text(q, options);
+          break;
+        case 'select':
+        case 'multiselect':
+        case 'confirm':
+          context[key] = await select(q, options);
+          break;
+      }
+    } finally {
+      stdin.setRawMode(false);
+      stdin.pause();
     }
 
     stdout.write('\n');

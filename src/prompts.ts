@@ -6,7 +6,7 @@ import type { SelectChoice } from './types.ts';
 
 type QuestionBase = {
   message: string;
-  validate?: (value: unknown) => string | boolean;
+  validate?: (value: any) => string | boolean;
 };
 
 type QuestionText = QuestionBase;
@@ -162,10 +162,6 @@ export async function select<T extends boolean>(
 
   const { update } = section(getText(false), stdout);
 
-  // Enable raw mode to capture keypresses
-  stdin.setRawMode(true);
-  stdin.resume();
-
   return new Promise((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
       const key = data.toString();
@@ -217,9 +213,7 @@ export async function select<T extends boolean>(
           }
 
           if (validation === true) {
-            stdin.setRawMode(false);
             stdin.removeListener('data', onKeyPress);
-            stdin.pause();
 
             update(getText(true));
 
@@ -244,9 +238,7 @@ export async function select<T extends boolean>(
 
           break;
         case KEYCODES.CONTROL_C: {
-          stdin.setRawMode(false);
           stdin.removeListener('data', onKeyPress);
-          stdin.pause();
 
           stdout.write(ansiEscapes.cursorShow);
           stdout.write('\n\n');

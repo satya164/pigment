@@ -113,7 +113,7 @@ function question({ message, done }: { message: string; done: boolean }) {
   if (done) {
     return `${styleText(['green'], '✔')} ${message}`;
   } else {
-    return `${styleText(['blue'], '?')} >>>\n  ${message}`;
+    return `${styleText(['blue'], '?')} ${message}`;
   }
 }
 
