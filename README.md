@@ -1,11 +1,11 @@
-# clione
+# pigment
 
-A library for creating interactive command-line tools.
+A library for creating interactive command-line UI.
 
 ## Installation
 
 ```bash
-npm install clione
+npm install pigment
 ```
 
 This library is a work-in-progress and is not yet ready for production use.

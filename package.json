@@ -1,10 +1,10 @@
 {
-  "name": "clione",
-  "description": "A library for creating interactive command-line tools",
-  "version": "0.0.1",
+  "name": "pigment",
+  "description": "A library for creating interactive command-line UI",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/satya164/clione.git"
+    "url": "git+https://github.com/satya164/pigment.git"
   },
   "author": "Satyajit Sahoo <satyajit.happy@gmail.com>",
   "publishConfig": {
