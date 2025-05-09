@@ -85,19 +85,17 @@ async function show<const T extends QuestionList<string>>(
 
           break;
         case 'confirm':
-          {
-            value = value === 'true' ? true : value === 'false' ? false : value;
+          value = value === 'true' ? true : value === 'false' ? false : value;
 
-            if (typeof value !== 'boolean') {
-              error = new Error(`Invalid value for ${key}. Expected boolean.`);
-            }
+          if (typeof value !== 'boolean') {
+            error = new Error(`Invalid value for ${key}. Expected boolean.`);
           }
 
           break;
       }
 
       if (!error && 'validate' in q && q.validate) {
-        // @ts-expect-error
+        // @ts-expect-error: typescript can't properly infer the type of value
         const valid = q.validate(value);
 
         if (typeof valid === 'string') {

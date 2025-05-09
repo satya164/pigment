@@ -60,6 +60,7 @@ export async function spinner<T>(
       }
 
       if (value?.message) {
+        // eslint-disable-next-line require-atomic-updates
         props.message = value.message;
       }
     }

@@ -43,9 +43,9 @@ export async function text(
   const { update } = render(text, stdout);
 
   let error: string | undefined;
-
-  let promise = rl.question(prompt);
   let answer = initial;
+
+  const promise = rl.question(prompt);
 
   if (initial != null) {
     stdout.write(styleText(components.theme.hint, initial));
@@ -115,6 +115,7 @@ export async function text(
         stdout.moveCursor(0, -error.split('\n').length);
         stdout.cursorTo(prompt.length + answer.length);
 
+        // eslint-disable-next-line require-atomic-updates
         answer = await promise;
 
         continue;

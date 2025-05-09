@@ -14,11 +14,11 @@ const prompt = create('$0 <name>', {
     description: 'Pokémon data',
     message: 'Looking for Pokémon…',
     task: async function* () {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await timeout(1000);
 
       yield { message: 'Throwing Pokéball…' };
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await timeout(1500);
 
       const mimikyu = {
         name: 'Mimikyu',
@@ -139,3 +139,10 @@ expectTypeOf(result).toEqualTypeOf<
     feeling: string;
   }>
 >();
+
+const timeout = (duration: number) =>
+  new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('Timeout');
+    }, duration);
+  });

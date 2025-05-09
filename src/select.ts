@@ -47,7 +47,7 @@ export async function select<
     const choice = choices[0];
 
     if (choice != null) {
-      // @ts-expect-error
+      // @ts-expect-error: typescript can't properly infer the type
       return choice.value;
     }
   }
@@ -147,7 +147,7 @@ export async function select<
         case KEYCODES.ENTER:
           if (question.validate) {
             validation = question.validate(
-              // @ts-expect-error
+              // @ts-expect-error: typescript can't properly infer the type
               type === 'multiselect' ? selected : choices[index]?.value
             );
           }
@@ -161,7 +161,7 @@ export async function select<
             stdout.write(`\n`);
 
             if (type === 'multiselect') {
-              // @ts-expect-error
+              // @ts-expect-error: typescript can't properly infer the type
               resolve(selected);
             } else {
               const answer = choices[index];
@@ -169,7 +169,7 @@ export async function select<
               if (answer == null) {
                 reject(new Error('Invalid answer'));
               } else {
-                // @ts-expect-error
+                // @ts-expect-error: typescript can't properly infer the type
                 resolve(answer.value);
               }
             }

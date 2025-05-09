@@ -74,7 +74,7 @@ type AnswerInternal<T extends Question> =
             ? Result
             : never;
 
-type BaseQuestion<Type extends PromptType, Value extends unknown> = {
+type BaseQuestion<Type extends PromptType, Value> = {
   type: Type;
   message: string;
   validate?: (value: Value) => boolean | string;
