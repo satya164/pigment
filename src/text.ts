@@ -18,13 +18,23 @@ export async function text(
 
   rl.addListener('SIGINT', () => {
     rl.close();
+
+    update(
+      components.text({
+        message,
+        status: 'cancelled',
+        answer,
+      })
+    );
+
     stdout.write('\n');
+
     onCancel();
   });
 
   const text = components.text({
     message,
-    done: false,
+    status: 'pending',
   });
 
   const lines = text.split('\n');
@@ -45,6 +55,8 @@ export async function text(
 
       // Clear the initial value from the prompt unless it's a confirm
       if (key !== KEYCODES.ENTER) {
+        stdin.removeListener('data', onKeyPress);
+
         stdout.cursorTo(prompt.length);
         stdout.write(ansiEscapes.eraseLine);
 
@@ -61,8 +73,6 @@ export async function text(
         }
 
         answer = undefined;
-
-        stdin.removeListener('data', onKeyPress);
       }
     };
 
@@ -117,7 +127,7 @@ export async function text(
   update(
     components.text({
       message,
-      done: true,
+      status: 'done',
       answer,
     })
   );

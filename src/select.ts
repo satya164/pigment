@@ -66,14 +66,16 @@ export async function select<
 
   let validation: string | boolean = true;
 
-  const getText = (answered: boolean) => {
+  const getText = (answered: boolean, cancelled?: boolean) => {
+    const status = cancelled ? 'cancelled' : answered ? 'done' : 'pending';
+
     const text =
       question.type === 'confirm'
         ? components.confirm({
             message,
             choices,
             index,
-            done: answered,
+            status,
           })
         : question.type === 'multiselect'
           ? components.multiselect({
@@ -81,13 +83,13 @@ export async function select<
               choices,
               index,
               answer: selected,
-              done: answered,
+              status,
             })
           : components.select({
               message,
               choices,
               index,
-              done: answered,
+              status,
             });
 
     const error = validation !== true ? components.error({ validation }) : null;
@@ -178,6 +180,8 @@ export async function select<
           break;
         case KEYCODES.CONTROL_C: {
           stdin.removeListener('data', onKeyPress);
+
+          update(getText(false, true));
 
           stdout.write(ansiEscapes.cursorShow);
           stdout.write('\n');

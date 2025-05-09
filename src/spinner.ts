@@ -1,19 +1,20 @@
 import ansiEscapes from 'ansi-escapes';
 import * as components from './components.ts';
+import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
 import type { QuestionOptions } from './select.ts';
 import type { SpinnerQuestion } from './types.ts';
 
 export async function spinner<T>(
   { message, task }: SpinnerQuestion<T>,
-  { stdout }: QuestionOptions
+  { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<unknown> {
   stdout.write(ansiEscapes.cursorHide);
 
-  const props = {
+  const props: Parameters<typeof components.spinner>[0] = {
     counter: 0,
     message,
-    done: false,
+    status: 'pending' as const,
   };
 
   let result;
@@ -25,6 +26,27 @@ export async function spinner<T>(
 
     update(components.spinner(props));
   }, 80);
+
+  const onKeyPress = (data: Buffer) => {
+    const key = data.toString();
+
+    if (key === KEYCODES.CONTROL_C) {
+      stdin.removeListener('data', onKeyPress);
+
+      clearInterval(interval);
+
+      props.status = 'cancelled';
+
+      update(components.spinner(props));
+
+      stdout.write(ansiEscapes.cursorShow);
+      stdout.write('\n');
+
+      onCancel();
+    }
+  };
+
+  stdin.addListener('data', onKeyPress);
 
   try {
     const generator = task();
@@ -43,6 +65,7 @@ export async function spinner<T>(
     }
   } finally {
     clearInterval(interval);
+    stdin.removeListener('data', onKeyPress);
     stdout.write(ansiEscapes.cursorShow);
   }
 
@@ -51,7 +74,7 @@ export async function spinner<T>(
       counter: props.counter,
       message: result.message ?? message,
       answer: result.value,
-      done: true,
+      status: 'done',
     })
   );
 

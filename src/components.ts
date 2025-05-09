@@ -1,5 +1,7 @@
 import { styleText } from 'node:util';
 
+type Status = 'pending' | 'done' | 'cancelled';
+
 export const theme = {
   message: 'bold',
   selected: 'cyan',
@@ -7,42 +9,42 @@ export const theme = {
   done: 'green',
   hint: 'dim',
   separator: 'gray',
-  error: ['red', 'italic'],
+  error: 'red',
 } as const satisfies Record<string, Parameters<typeof styleText>[0]>;
 
 export function text({
   message,
   answer,
-  done,
+  status,
 }: {
   message: string;
   answer?: string;
-  done: boolean;
+  status: Status;
 }) {
-  return `${question({ message, done })}\n  ${answer ? styleText(theme.hint, answer) : ''}`;
+  return `${question({ message, status })}\n  ${answer ? styleText(theme.hint, answer) : ''}`;
 }
 
 export function confirm({
   message,
   choices,
   index,
-  done,
+  status,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
-  done: boolean;
+  status: Status;
 }) {
-  if (done) {
+  if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
 
     return [
-      question({ message, done }),
+      question({ message, status }),
       `  ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
-  return `${question({ message, done })}\n  ${choices
+  return `${question({ message, status })}\n  ${choices
     .map((choice, i) => {
       const selected = i === index;
 
@@ -59,24 +61,24 @@ export function select({
   message,
   choices,
   index,
-  done,
+  status,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
-  done: boolean;
+  status: Status;
 }) {
-  if (done) {
+  if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
 
     return [
-      question({ message, done }),
+      question({ message, status }),
       `  ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
   return [
-    question({ message, done }),
+    question({ message, status }),
     ...choices.map((choice, i) => {
       const selected = i === index;
 
@@ -94,17 +96,17 @@ export function multiselect({
   choices,
   index,
   answer,
-  done,
+  status,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
   answer: unknown[];
-  done: boolean;
+  status: Status;
 }) {
-  if (done) {
+  if (status === 'done') {
     return [
-      question({ message, done }),
+      question({ message, status }),
       `  ${styleText(
         theme.hint,
         choices
@@ -116,7 +118,7 @@ export function multiselect({
   }
 
   return [
-    question({ message, done }),
+    question({ message, status }),
     ...choices.map((choice, i) => {
       const selected = answer.includes(choice.value);
 
@@ -145,12 +147,17 @@ function checkbox({
   return `${prefix} ${active ? styleText(theme.selected, title) : title}${choice.description ? `\n    ${styleText(theme.hint, choice.description)}` : ''}`;
 }
 
-function question({ message, done }: { message: string; done: boolean }) {
-  if (done) {
-    return `${styleText(theme.done, '✔')} ${styleText(theme.message, message)}`;
-  } else {
-    return `${styleText(theme.question, '?')} ${styleText(theme.message, message)}`;
-  }
+function question({ message, status }: { message: string; status: Status }) {
+  const format =
+    status === 'done'
+      ? theme.done
+      : status === 'cancelled'
+        ? theme.hint
+        : theme.question;
+
+  const icon = status === 'done' ? '✔' : status === 'cancelled' ? '◼' : '?';
+
+  return `${styleText(format, icon)} ${styleText(theme.message, message)}`;
 }
 
 export function error({
@@ -171,21 +178,21 @@ export function spinner({
   counter,
   message,
   answer,
-  done,
+  status,
 }: {
   counter: number;
   message: string;
   answer?: unknown;
-  done: boolean;
+  status: Status;
 }) {
   const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
 
   const index = counter % frames.length;
   const frame = frames[index];
 
-  if (done) {
-    return `${styleText(theme.done, '✔')} ${styleText(theme.message, message)} ${answer ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
-  } else {
+  if (status === 'pending') {
     return `${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
+  } else {
+    return `${question({ message, status })} ${answer ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
   }
 }

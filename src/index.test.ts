@@ -113,7 +113,12 @@ const prompt = create('$0 <name>', {
   },
 });
 
-const result = await prompt.show();
+const result = await prompt.show({
+  onCancel: () => {
+    process.stdout.write('Prompt cancelled\n');
+    process.exit(0);
+  },
+});
 
 console.log(result);
 
