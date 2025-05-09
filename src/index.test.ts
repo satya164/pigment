@@ -1,7 +1,7 @@
 import { expectTypeOf } from 'expect-type';
 import { create } from './index.ts';
 
-const prompt = create('$0 <name>', {
+const pigment = create('$0 <name>', {
   name: {
     type: 'text',
     description: 'Name of the user',
@@ -74,7 +74,7 @@ const prompt = create('$0 <name>', {
   sugar: {
     description: 'Whether the user likes sugar in their coffee',
     async prompt() {
-      const answers = prompt.read();
+      const answers = pigment.read();
 
       if (answers.drink === 'coffee') {
         return {
@@ -113,7 +113,7 @@ const prompt = create('$0 <name>', {
   },
 });
 
-const result = await prompt.show({
+const result = await pigment.show({
   onCancel: () => {
     process.stdout.write('Prompt cancelled\n');
     process.exit(0);
