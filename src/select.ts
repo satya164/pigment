@@ -159,8 +159,6 @@ export async function select<
             stdout.write(`\n`);
 
             if (type === 'multiselect') {
-              stdout.write('\n');
-
               // @ts-expect-error
               resolve(selected);
             } else {
@@ -169,8 +167,6 @@ export async function select<
               if (answer == null) {
                 reject(new Error('Invalid answer'));
               } else {
-                stdout.write('\n');
-
                 // @ts-expect-error
                 resolve(answer.value);
               }
@@ -184,7 +180,7 @@ export async function select<
           stdin.removeListener('data', onKeyPress);
 
           stdout.write(ansiEscapes.cursorShow);
-          stdout.write('\n\n');
+          stdout.write('\n');
 
           onCancel();
 

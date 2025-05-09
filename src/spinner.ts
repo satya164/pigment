@@ -60,7 +60,7 @@ export async function spinner<T>(
     })
   );
 
-  stdout.write('\n\n');
+  stdout.write('\n');
 
   return result.value;
 }

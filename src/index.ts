@@ -37,8 +37,6 @@ async function show<const T extends QuestionList<string>>(
 ): Promise<AnswerList<T>> {
   const parsed = parseArgs(command, args);
 
-  stdout.write('\n');
-
   for (const [key, question] of Object.entries(questions)) {
     const q =
       question != null && 'prompt' in question
@@ -149,8 +147,6 @@ async function show<const T extends QuestionList<string>>(
       stdin.pause();
     }
   }
-
-  stdout.write('\n');
 
   return context as AnswerList<T>;
 }

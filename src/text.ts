@@ -18,7 +18,7 @@ export async function text(
 
   rl.addListener('SIGINT', () => {
     rl.close();
-    stdout.write('\n\n');
+    stdout.write('\n');
     onCancel();
   });
 
@@ -130,7 +130,7 @@ export async function text(
     stdout.moveCursor(0, -count);
   }
 
-  stdout.write('\n\n');
+  stdout.write('\n');
 
   rl.close();
 
