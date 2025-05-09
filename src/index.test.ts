@@ -12,8 +12,12 @@ const prompt = create('$0 <name>', {
   pokemon: {
     type: 'spinner',
     description: 'Pokémon data',
-    message: 'Loading Pokémon…',
-    async task() {
+    message: 'Looking for Pokémon…',
+    task: async function* () {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      yield { message: 'Throwing Pokéball…' };
+
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const mimikyu = {
@@ -31,8 +35,8 @@ const prompt = create('$0 <name>', {
       const pokemon = Math.random() > 0.5 ? mimikyu : bulbasaur;
 
       return {
+        message: `Caught ${pokemon.name}`,
         value: pokemon,
-        message: `Loaded ${pokemon.name}`,
       };
     },
   },

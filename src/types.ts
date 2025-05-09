@@ -102,10 +102,10 @@ export type ConfirmQuestion = BaseQuestion<'confirm', boolean>;
 export type SpinnerQuestion<Result> = {
   type: 'spinner';
   message: string;
-  task: () => Promise<{
-    value: Result;
-    message?: string;
-  }>;
+  task: () => AsyncGenerator<
+    { message?: string },
+    { value: Result; message?: string }
+  >;
 };
 
 type PromptType = 'text' | 'select' | 'multiselect' | 'confirm';
