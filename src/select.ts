@@ -67,7 +67,8 @@ export async function select<
   let validation: string | boolean = true;
 
   const getText = (answered: boolean, cancelled?: boolean) => {
-    const status = cancelled ? 'cancelled' : answered ? 'done' : 'pending';
+    const status =
+      cancelled === true ? 'cancelled' : answered ? 'done' : 'pending';
 
     const text =
       question.type === 'confirm'
@@ -94,7 +95,7 @@ export async function select<
 
     const error = validation !== true ? components.error({ validation }) : null;
 
-    return `${text}${error ? `\n${error}` : ''}`;
+    return `${text}${error != null && error.length ? `\n${error}` : ''}`;
   };
 
   stdout.write(ansiEscapes.cursorHide);

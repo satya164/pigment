@@ -21,7 +21,7 @@ export function text({
   answer?: string;
   status: Status;
 }) {
-  return `${question({ message, status })}\n  ${answer ? styleText(theme.hint, answer) : ''}`;
+  return `${question({ message, status })}\n  ${answer != null ? styleText(theme.hint, answer) : ''}`;
 }
 
 export function confirm({
@@ -144,7 +144,7 @@ function checkbox({
 
   const title = choice.title != null ? choice.title : String(choice.value);
 
-  return `${prefix} ${active ? styleText(theme.selected, title) : title}${choice.description ? `\n    ${styleText(theme.hint, choice.description)}` : ''}`;
+  return `${prefix} ${active ? styleText(theme.selected, title) : title}${choice.description != null ? `\n    ${styleText(theme.hint, choice.description)}` : ''}`;
 }
 
 function question({ message, status }: { message: string; status: Status }) {
@@ -167,7 +167,7 @@ export function error({
 }) {
   const hint = validation === false ? 'Invalid input' : validation;
 
-  if (hint !== null && hint !== true) {
+  if (hint != null && hint !== true) {
     return styleText(theme.error, `  ${hint}`);
   }
 
@@ -193,6 +193,6 @@ export function spinner({
   if (status === 'pending') {
     return `${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
   } else {
-    return `${question({ message, status })} ${answer ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
+    return `${question({ message, status })} ${answer != null ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
   }
 }

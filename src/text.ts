@@ -50,7 +50,7 @@ export async function text(
   if (initial != null) {
     stdout.write(styleText(components.theme.hint, initial));
 
-    const onKeyPress = async (data: Buffer) => {
+    const onKeyPress = (data: Buffer) => {
       const key = data.toString('ascii');
 
       // Clear the initial value from the prompt unless it's a confirm
@@ -133,7 +133,7 @@ export async function text(
     })
   );
 
-  if (error) {
+  if (error != null && error.length) {
     const count = error.split('\n').length;
 
     stdout.moveCursor(0, count);

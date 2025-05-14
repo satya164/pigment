@@ -54,12 +54,12 @@ export async function spinner<T>(
     while (true) {
       const { done, value } = await generator.next();
 
-      if (done) {
+      if (done === true) {
         result = value;
         break;
       }
 
-      if (value?.message) {
+      if (value.message != null) {
         // eslint-disable-next-line require-atomic-updates
         props.message = value.message;
       }

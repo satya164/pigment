@@ -43,7 +43,7 @@ export function parseArgs(command: string, args: string[]) {
     const arg = args[i];
 
     if (arg == null) {
-      throw new Error(`Invalid argument at index ${i}`);
+      throw new Error(`Invalid argument at index ${String(i)}`);
     }
 
     if (arg.startsWith('-')) {
@@ -90,7 +90,8 @@ export function parseArgs(command: string, args: string[]) {
       const prev = args[i - 1];
 
       if (
-        prev?.startsWith('-') &&
+        prev != null &&
+        prev.startsWith('-') &&
         !prev.includes('=') &&
         !prev.startsWith('--no-')
       ) {

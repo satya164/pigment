@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "declaration": true,
+    "allowJs": true,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "allowUnreachableCode": false,
@@ -24,7 +25,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": true
   },
   "exclude": ["lib"]
 }

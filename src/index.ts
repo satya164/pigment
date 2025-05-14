@@ -13,11 +13,11 @@ export function create<const T extends QuestionList<string>>(
   command: string,
   questions: T
 ): Prompt<T> {
-  const context: Record<string, unknown> = {};
+  const context: Partial<AnswerList<T>> = {};
 
   return {
-    show: (options) => show(command, questions, context, options),
-    read: () => context as Partial<AnswerList<T>>,
+    show: async (options) => show(command, questions, context, options),
+    read: () => context,
   };
 }
 
@@ -29,19 +29,16 @@ async function show<const T extends QuestionList<string>>(
     args = process.argv.slice(2),
     stdin = process.stdin,
     stdout = process.stdout,
-    interactive = Boolean(
-      stdout.isTTY && process.env.TERM !== 'dumb' && !process.env.CI
-    ),
+    interactive = stdout.isTTY &&
+      process.env.TERM !== 'dumb' &&
+      (process.env.CI == null || process.env.CI === ''),
     onCancel = () => process.exit(0),
   }: PromptOptions = {}
 ): Promise<AnswerList<T>> {
   const parsed = parseArgs(command, args);
 
   for (const [key, question] of Object.entries(questions)) {
-    const q =
-      question != null && 'prompt' in question
-        ? await question.prompt()
-        : question;
+    const q = 'prompt' in question ? await question.prompt() : question;
 
     if (q === null) {
       continue;
@@ -74,8 +71,9 @@ async function show<const T extends QuestionList<string>>(
             const split = typeof value === 'string' ? value.split(',') : null;
 
             if (
-              split?.length === 0 ||
-              split?.some((v) => q.choices.every((c) => c.value !== v))
+              split == null ||
+              split.length === 0 ||
+              split.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new Error(
                 `Invalid value for ${key}. Expected any of ${q.choices.map((c) => c.value).join(', ')}.`
@@ -92,6 +90,8 @@ async function show<const T extends QuestionList<string>>(
           }
 
           break;
+        case 'spinner':
+        // Spinner is only used for prompts
       }
 
       if (!error && 'validate' in q && q.validate) {
@@ -100,7 +100,7 @@ async function show<const T extends QuestionList<string>>(
 
         if (typeof valid === 'string') {
           error = new Error(`Invalid value for ${key}. ${valid}`);
-        } else if (valid !== true) {
+        } else if (!valid) {
           error = new Error(`Invalid value for ${key}.`);
         }
       }
@@ -146,5 +146,6 @@ async function show<const T extends QuestionList<string>>(
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   return context as AnswerList<T>;
 }

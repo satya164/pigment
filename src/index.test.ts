@@ -74,6 +74,8 @@ const pigment = create('$0 <name>', {
   sugar: {
     description: 'Whether the user likes sugar in their coffee',
     async prompt() {
+      await Promise.resolve();
+
       const answers = pigment.read();
 
       if (answers.drink === 'coffee') {
@@ -140,9 +142,10 @@ expectTypeOf(result).toEqualTypeOf<
   }>
 >();
 
-const timeout = (duration: number) =>
-  new Promise((resolve) => {
+async function timeout(duration: number) {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve('Timeout');
     }, duration);
   });
+}
