@@ -45,7 +45,7 @@ async function show<const T extends QuestionList<string>>(
     }
 
     if (key in parsed) {
-      let value =
+      let value: unknown =
         parsed[key] ??
         (question.alias != null ? parsed[question.alias] : undefined);
 
@@ -68,17 +68,23 @@ async function show<const T extends QuestionList<string>>(
           break;
         case 'multiselect':
           {
-            const split = typeof value === 'string' ? value.split(',') : null;
+            const result =
+              typeof value === 'string'
+                ? value.split(',')
+                : value === false
+                  ? []
+                  : null;
 
             if (
-              split == null ||
-              split.length === 0 ||
-              split.some((v) => q.choices.every((c) => c.value !== v))
+              result == null ||
+              result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new Error(
                 `Invalid value for ${key}. Expected any of ${q.choices.map((c) => c.value).join(', ')}.`
               );
             }
+
+            value = result;
           }
 
           break;

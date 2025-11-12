@@ -108,12 +108,12 @@ export function parseArgs(command: string, args: string[]) {
 }
 
 function getArgName(arg: string) {
-  if (arg.startsWith('--no-')) {
-    return arg.slice(5);
-  } else if (arg.startsWith('--')) {
-    return arg.slice(2);
-  } else if (arg.startsWith('-')) {
-    return arg.slice(1);
+  const prefixes = ['--no-', '--', '-'];
+
+  for (const prefix of prefixes) {
+    if (arg.startsWith(prefix)) {
+      return arg.slice(prefix.length);
+    }
   }
 
   return arg;
