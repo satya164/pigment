@@ -14,11 +14,11 @@ const pigment = create('$0 <name>', {
     description: 'Pokémon data',
     message: 'Looking for Pokémon…',
     task: async function* () {
-      await timeout(1000);
+      await timeout(500);
 
       yield { message: 'Throwing Pokéball…' };
 
-      await timeout(1500);
+      await timeout(1000);
 
       const mimikyu = {
         name: 'Mimikyu',
@@ -102,7 +102,11 @@ const pigment = create('$0 <name>', {
     description: 'Fruits that the user likes',
     message: 'Which fruits do you like?',
     choices: [
-      { title: 'Apple', value: 'apple' },
+      {
+        title: 'Apple',
+        description: 'An apple a day keeps the doctor away',
+        value: 'apple',
+      },
       { title: 'Banana', value: 'banana' },
       { title: 'Orange', value: 'orange' },
     ],
