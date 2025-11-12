@@ -4,13 +4,14 @@ import { spinner } from './spinner.ts';
 import { text } from './text.ts';
 import type {
   AnswerList,
+  ParameterList,
   Prompt,
   PromptOptions,
   QuestionList,
 } from './types.ts';
 
 export function create<const T extends QuestionList<string>>(
-  command: string,
+  command: `$0 ${ParameterList<Extract<keyof T, string>>}`,
   questions: T
 ): Prompt<T> {
   const context: Partial<AnswerList<T>> = {};
