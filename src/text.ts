@@ -42,13 +42,16 @@ export async function text(
 
   const { update } = render(text, stdout);
 
+  const initialResult =
+    typeof initial === 'function' ? await initial() : initial;
+
   let error: string | undefined;
-  let answer = initial;
+  let answer = initialResult;
 
   const promise = rl.question(prompt);
 
-  if (initial != null) {
-    stdout.write(styleText(components.theme.hint, initial));
+  if (initialResult != null) {
+    stdout.write(styleText(components.theme.hint, initialResult));
 
     const onKeyPress = (data: Buffer) => {
       const key = data.toString('ascii');

@@ -6,7 +6,15 @@ const pigment = create(['<name>', '[directory]'], {
     type: 'text',
     description: 'Name of the user',
     message: 'What is your name?',
-    initial: 'John Doe',
+    initial: (): string => {
+      const answers = pigment.read();
+
+      if (answers.name != null) {
+        return answers.name;
+      }
+
+      return 'John Doe';
+    },
     validate: (value) => value.length > 3,
   },
   pokemon: {

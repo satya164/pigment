@@ -52,17 +52,21 @@ export async function select<
     }
   }
 
+  const initialValue: unknown =
+    typeof question.initial === 'function'
+      ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        await question.initial()
+      : question.initial;
+
   let index =
     type === 'multiselect'
       ? 0
       : question.initial != null
-        ? choices.findIndex((c) => c.value === question.initial)
+        ? choices.findIndex((c) => c.value === initialValue)
         : 0;
 
   let selected: unknown[] =
-    type === 'multiselect' && Array.isArray(question.initial)
-      ? question.initial
-      : [];
+    type === 'multiselect' && Array.isArray(initialValue) ? initialValue : [];
 
   let validation: string | boolean = true;
 

@@ -97,7 +97,7 @@ type BaseQuestion<Type extends PromptType, Value> = {
   type: Type;
   message: string;
   validate?: (value: Value) => boolean | string;
-  initial?: Value;
+  initial?: Value | (() => Value | Promise<Value>);
 };
 
 export type TextQuestion = BaseQuestion<'text', string>;
