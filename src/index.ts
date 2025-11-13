@@ -73,7 +73,7 @@ async function show<
         case 'select':
           if (q.choices.every((c) => c.value !== value)) {
             error = new Error(
-              `Invalid value for '${key}'. Expected one of ${q.choices.map((c) => c.value).join(', ')}.`
+              `Invalid value for '${key}'. Expected one of: ${q.choices.map((c) => `'${String(c.value)}'`).join(', ')}.`
             );
           }
 
@@ -92,7 +92,7 @@ async function show<
               result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new Error(
-                `Invalid value for '${key}'. Expected any of ${q.choices.map((c) => c.value).join(', ')}.`
+                `Invalid value for '${key}'. Expected any of: ${q.choices.map((c) => `'${String(c.value)}'`).join(', ')}.`
               );
             }
 
@@ -158,6 +158,10 @@ async function show<
         context[key] = initial;
       }
 
+      continue;
+    }
+
+    if (!interactive) {
       continue;
     }
 
