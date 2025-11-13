@@ -124,6 +124,28 @@ export async function text(
         stdout.moveCursor(0, -error.split('\n').length);
         stdout.cursorTo(prompt.length + answer.length);
 
+        const errorLines = error.split('\n').length;
+        const promptEndPosition = prompt.length + answer.length + 1;
+
+        // Clear validation error on next key press
+        onKeyPressOnce((data: Buffer) => {
+          const key = data.toString('ascii');
+
+          if (
+            key !== KEYCODES.ENTER &&
+            key !== KEYCODES.BACKSPACE &&
+            key !== KEYCODES.DELETE &&
+            key !== KEYCODES.ARROW_LEFT &&
+            key !== KEYCODES.ARROW_RIGHT &&
+            key !== KEYCODES.ARROW_UP &&
+            key !== KEYCODES.ARROW_DOWN
+          ) {
+            stdout.moveCursor(0, errorLines);
+            stdout.write(ansiEscapes.eraseLines(errorLines));
+            stdout.moveCursor(promptEndPosition, -1);
+          }
+        });
+
         // eslint-disable-next-line require-atomic-updates
         answer = await promise;
 
