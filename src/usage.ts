@@ -70,7 +70,7 @@ export function usage({
     }
 
     return {
-      name: `${question.alias != null ? `-${question.alias}, ` : '    '}--${key}`,
+      name: `${question.alias != null ? `-${question.alias}, ` : '    '}--${camelToKebabCase(key)}`,
       type: type != null ? `[${type}]` : undefined,
       description: question.description,
       choices:
@@ -152,4 +152,11 @@ export function usage({
   }
 
   stdout.write(text);
+}
+
+function camelToKebabCase(text: string): string {
+  return text
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase();
 }
