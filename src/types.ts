@@ -114,10 +114,23 @@ type RequiredParameter<T extends string> = `<${T}>`;
 
 type OptionalParameter<T extends string> = `[${T}]`;
 
-export type ParameterList<T extends string> =
+type ParameterString<T extends string> =
   | RequiredParameter<T>
   | OptionalParameter<T>
   | `${RequiredParameter<T>} ${string}`
   | `${OptionalParameter<T>} ${string}`;
+
+export type ParameterList<T extends QuestionList<string>> = ParameterString<
+  Extract<
+    {
+      [K in keyof T]: T[K] extends QuestionItem<infer Q>
+        ? Q extends { type: 'text' }
+          ? K
+          : undefined
+        : undefined;
+    }[keyof T],
+    string
+  >
+>;
 
 type FlatType<T> = { [K in keyof T]: T[K] } & {};

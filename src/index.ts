@@ -11,7 +11,7 @@ import type {
 } from './types.ts';
 
 export function create<const T extends QuestionList<string>>(
-  command: `$0 ${ParameterList<Extract<keyof T, string>>}`,
+  command: `$0 ${ParameterList<T>}`,
   questions: T
 ): Prompt<T> {
   const context: Partial<AnswerList<T>> = {};
