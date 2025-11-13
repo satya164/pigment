@@ -1,4 +1,4 @@
-export function parseArgs(command: string, args: string[]) {
+export function parseArgs(command: string, names: string[], args: string[]) {
   if (!command.startsWith('$0 ')) {
     throw new Error('Command must start with $0');
   }
@@ -22,6 +22,14 @@ export function parseArgs(command: string, args: string[]) {
 
       throw new Error(`Argument must be wrapped in [] or <> (got ${arg})`);
     });
+
+  positionals.forEach(({ name }) => {
+    if (!names.includes(name)) {
+      throw new Error(
+        `Unknown positional argument ${name} (valid names: ${names.join(', ')})`
+      );
+    }
+  });
 
   let foundOptional = false;
 

@@ -36,7 +36,13 @@ async function show<const T extends QuestionList<string>>(
     onCancel = () => process.exit(0),
   }: PromptOptions = {}
 ): Promise<AnswerList<T>> {
-  const parsed = parseArgs(command, args);
+  const parsed = parseArgs(
+    command,
+    Object.entries(questions)
+      .filter(([_, q]) => 'type' in q && q.type === 'text')
+      .map(([key, _]) => key),
+    args
+  );
 
   for (const [key, question] of Object.entries(questions)) {
     const q = 'prompt' in question ? await question.prompt() : question;
