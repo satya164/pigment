@@ -66,14 +66,14 @@ async function show<
       switch (q.type) {
         case 'text':
           if (typeof value !== 'string') {
-            error = new Error(`Invalid value for ${key}. Expected string.`);
+            error = new Error(`Invalid value for '${key}'. Expected string.`);
           }
 
           break;
         case 'select':
           if (q.choices.every((c) => c.value !== value)) {
             error = new Error(
-              `Invalid value for ${key}. Expected one of ${q.choices.map((c) => c.value).join(', ')}.`
+              `Invalid value for '${key}'. Expected one of ${q.choices.map((c) => c.value).join(', ')}.`
             );
           }
 
@@ -92,7 +92,7 @@ async function show<
               result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new Error(
-                `Invalid value for ${key}. Expected any of ${q.choices.map((c) => c.value).join(', ')}.`
+                `Invalid value for '${key}'. Expected any of ${q.choices.map((c) => c.value).join(', ')}.`
               );
             }
 
@@ -104,7 +104,7 @@ async function show<
           value = value === 'true' ? true : value === 'false' ? false : value;
 
           if (typeof value !== 'boolean') {
-            error = new Error(`Invalid value for ${key}. Expected boolean.`);
+            error = new Error(`Invalid value for '${key}'. Expected boolean.`);
           }
 
           break;
@@ -114,12 +114,12 @@ async function show<
 
       if (!error && 'validate' in q && q.validate) {
         // @ts-expect-error: typescript can't properly infer the type of value
-        const valid = q.validate(value);
+        const validation = q.validate(value);
 
-        if (typeof valid === 'string') {
-          error = new Error(`Invalid value for ${key}. ${valid}`);
-        } else if (!valid) {
-          error = new Error(`Invalid value for ${key}.`);
+        if (typeof validation === 'string') {
+          error = new Error(`Invalid value for '${key}'. ${validation}`);
+        } else if (!validation) {
+          error = new Error(`Invalid value for '${key}'.`);
         }
       }
 
