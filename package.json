@@ -12,10 +12,12 @@
   },
   "license": "MIT",
   "type": "module",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./lib/src/index.d.ts",
+      "default": "./lib/src/index.js"
     },
     "./package.json": "./package.json"
   },
