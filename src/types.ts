@@ -22,6 +22,7 @@ export type PromptOptions = {
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
   interactive?: boolean;
+  onExit?: () => void;
   onCancel?: () => void;
 };
 

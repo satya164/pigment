@@ -40,6 +40,7 @@ async function show<
     interactive = stdout.isTTY &&
       process.env.TERM !== 'dumb' &&
       (process.env.CI == null || process.env.CI === ''),
+    onExit = () => process.exit(0),
     onCancel = () => process.exit(0),
   }: PromptOptions
 ): Promise<AnswerList<P, Q>> {
@@ -51,7 +52,7 @@ async function show<
         if (version != null) {
           stdout.write(`${version}\n`);
 
-          process.exit(0);
+          onExit();
         }
 
         break;
@@ -67,7 +68,7 @@ async function show<
           stdout,
         });
 
-        process.exit(0);
+        onExit();
       }
     }
   }
