@@ -126,6 +126,21 @@ export async function select<
 
           break;
         }
+        case KEYCODES.A: {
+          if (type === 'multiselect') {
+            validation = true;
+
+            if (selected.length === choices.length) {
+              selected = [];
+            } else {
+              selected = choices.map((c) => c.value);
+            }
+
+            update(getText(false));
+          }
+
+          break;
+        }
         case KEYCODES.SPACE: {
           if (type === 'multiselect') {
             validation = true;

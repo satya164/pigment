@@ -8,4 +8,5 @@ export const KEYCODES = {
   BACKSPACE: '\b',
   DELETE: '\u007f',
   CONTROL_C: '\u0003',
+  A: 'a',
 } as const;
