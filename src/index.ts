@@ -140,6 +140,17 @@ async function show<
       onCancel,
     };
 
+    const skip =
+      'skip' in q
+        ? typeof q.skip === 'function'
+          ? await q.skip()
+          : (q.skip ?? false)
+        : false;
+
+    if (skip) {
+      continue;
+    }
+
     // Enable raw mode to capture keypresses
     stdin.setRawMode(true);
     stdin.resume();
