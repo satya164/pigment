@@ -1,6 +1,10 @@
-import type { PositionalArgument } from './types.ts';
+import type { PositionalArgument, QuestionList } from './types.ts';
 
-export function parseArgs(positionals: PositionalArgument[], args: string[]) {
+export function parseArgs(
+  positionals: PositionalArgument[],
+  questions: QuestionList<string>,
+  args: string[]
+) {
   const parsedPositionals = positionals.map((arg) => {
     if (arg.startsWith('[') && arg.endsWith(']')) {
       return {
@@ -104,7 +108,27 @@ export function parseArgs(positionals: PositionalArgument[], args: string[]) {
     }
   }
 
-  return parsed;
+  return Object.fromEntries(
+    Object.entries(parsed).map(([k, value]) => {
+      let key = k;
+
+      if (parsedPositionals.some((p) => p.name === key)) {
+        return [key, value];
+      }
+
+      if (key in questions) {
+        return [key, value];
+      }
+
+      key = kebabToCamelCase(key);
+
+      if (key in questions) {
+        return [key, value];
+      }
+
+      throw new Error(`Unknown argument '${k}'`);
+    })
+  );
 }
 
 function getArgName(arg: string) {
@@ -117,4 +141,8 @@ function getArgName(arg: string) {
   }
 
   return arg;
+}
+
+function kebabToCamelCase(text: string) {
+  return text.replace(/-./g, (x) => x[1]!.toUpperCase());
 }

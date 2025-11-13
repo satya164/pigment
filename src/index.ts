@@ -39,7 +39,7 @@ async function show<
     onCancel = () => process.exit(0),
   }: PromptOptions = {}
 ): Promise<AnswerList<P, Q>> {
-  const parsed = parseArgs(positionals, args);
+  const parsed = parseArgs(positionals, questions, args);
 
   for (const positional of positionals) {
     const key = positional.slice(1, -1);
