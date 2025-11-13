@@ -4,6 +4,7 @@ import { create } from './index.ts';
 const pigment = create(['<name>', '[directory]'], {
   username: {
     type: 'text',
+    alias: 'u',
     description: 'Name of the user',
     message: 'What is your name?',
     initial: (): string => {
@@ -128,6 +129,8 @@ const pigment = create(['<name>', '[directory]'], {
 });
 
 const result = await pigment.show({
+  name: 'pigment-demo',
+  description: 'A demo of pigment CLI prompt',
   onCancel: () => {
     process.stdout.write('Prompt cancelled\n');
     process.exit(0);

@@ -9,6 +9,7 @@ import type {
   PromptOptions,
   QuestionList,
 } from './types.ts';
+import { usage } from './usage.ts';
 
 export function create<
   const P extends PositionalArgument[],
@@ -30,6 +31,8 @@ async function show<
   questions: Q,
   context: Record<string, unknown>,
   {
+    name,
+    description,
     args = process.argv.slice(2),
     stdin = process.stdin,
     stdout = process.stdout,
@@ -37,8 +40,20 @@ async function show<
       process.env.TERM !== 'dumb' &&
       (process.env.CI == null || process.env.CI === ''),
     onCancel = () => process.exit(0),
-  }: PromptOptions = {}
+  }: PromptOptions
 ): Promise<AnswerList<P, Q>> {
+  if (args.length === 1 && (args[0] === '-h' || args[0] === '--help')) {
+    usage({
+      name,
+      description,
+      positionals,
+      questions,
+      stdout,
+    });
+
+    process.exit(0);
+  }
+
   const parsed = parseArgs(positionals, questions, args);
 
   for (const positional of positionals) {

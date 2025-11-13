@@ -5,7 +5,7 @@ export type Prompt<
   /**
    * Show the prompt and wait for the user to answer.
    */
-  show: (options?: PromptOptions) => Promise<AnswerList<P, Q>>;
+  show: (options: PromptOptions) => Promise<AnswerList<P, Q>>;
   /**
    * Read the current answers from the prompt.
    */
@@ -15,6 +15,8 @@ export type Prompt<
 export type PositionalArgument = `<${string}>` | `[${string}]`;
 
 export type PromptOptions = {
+  name: string;
+  description?: string;
   args?: string[];
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
