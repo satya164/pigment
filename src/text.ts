@@ -50,16 +50,30 @@ export async function text(
 
   const promise = rl.question(prompt);
 
+  const onKeyPressOnce = (callback: (data: Buffer) => void) => {
+    const onKeyPress = (data: Buffer) => {
+      callback(data);
+
+      stdin.removeListener('data', onKeyPress);
+    };
+
+    stdin.addListener('data', onKeyPress);
+
+    // Also remove the listener when the prompt is closed
+    // So it doesn't affect unrelated prompts
+    rl.addListener('close', () => {
+      stdin.removeListener('data', onKeyPress);
+    });
+  };
+
   if (initialResult != null) {
     stdout.write(styleText(components.theme.hint, initialResult));
 
-    const onKeyPress = (data: Buffer) => {
+    onKeyPressOnce((data: Buffer) => {
       const key = data.toString('ascii');
 
       // Clear the initial value from the prompt unless it's a confirm
       if (key !== KEYCODES.ENTER) {
-        stdin.removeListener('data', onKeyPress);
-
         stdout.cursorTo(prompt.length);
         stdout.write(ansiEscapes.eraseLine);
 
@@ -77,14 +91,6 @@ export async function text(
 
         answer = undefined;
       }
-    };
-
-    stdin.addListener('data', onKeyPress);
-
-    // Also remove the listener when the prompt is closed
-    // So it doesn't affect unrelated prompts
-    rl.addListener('close', () => {
-      stdin.removeListener('data', onKeyPress);
     });
   }
 
