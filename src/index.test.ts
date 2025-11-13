@@ -1,8 +1,8 @@
 import { expectTypeOf } from 'expect-type';
 import { create } from './index.ts';
 
-const pigment = create('$0 <name>', {
-  name: {
+const pigment = create(['<name>', '[directory]'], {
+  username: {
     type: 'text',
     description: 'Name of the user',
     message: 'What is your name?',
@@ -126,11 +126,11 @@ const result = await pigment.show({
   },
 });
 
-console.log(result);
-
 expectTypeOf(result).toEqualTypeOf<
   Readonly<{
     name: string;
+    directory?: string;
+    username: string;
     planet: 'earth';
     pokemon: {
       name: string;

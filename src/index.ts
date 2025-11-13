@@ -4,27 +4,30 @@ import { spinner } from './spinner.ts';
 import { text } from './text.ts';
 import type {
   AnswerList,
-  ParameterList,
+  PositionalArgument,
   Prompt,
   PromptOptions,
   QuestionList,
 } from './types.ts';
 
-export function create<const T extends QuestionList<string>>(
-  command: `$0 ${ParameterList<T>}`,
-  questions: T
-): Prompt<T> {
-  const context: Partial<AnswerList<T>> = {};
+export function create<
+  const P extends PositionalArgument[],
+  const Q extends QuestionList<string>,
+>(positionals: P, questions: Q): Prompt<P, Q> {
+  const context: Partial<AnswerList<P, Q>> = {};
 
   return {
-    show: async (options) => show(command, questions, context, options),
+    show: async (options) => show(positionals, questions, context, options),
     read: () => context,
   };
 }
 
-async function show<const T extends QuestionList<string>>(
-  command: string,
-  questions: T,
+async function show<
+  const P extends PositionalArgument[],
+  const Q extends QuestionList<string>,
+>(
+  positionals: P,
+  questions: Q,
   context: Record<string, unknown>,
   {
     args = process.argv.slice(2),
@@ -35,14 +38,16 @@ async function show<const T extends QuestionList<string>>(
       (process.env.CI == null || process.env.CI === ''),
     onCancel = () => process.exit(0),
   }: PromptOptions = {}
-): Promise<AnswerList<T>> {
-  const parsed = parseArgs(
-    command,
-    Object.entries(questions)
-      .filter(([_, q]) => 'type' in q && q.type === 'text')
-      .map(([key, _]) => key),
-    args
-  );
+): Promise<AnswerList<P, Q>> {
+  const parsed = parseArgs(positionals, args);
+
+  for (const positional of positionals) {
+    const key = positional.slice(1, -1);
+
+    if (key in parsed) {
+      context[key] = parsed[key];
+    }
+  }
 
   for (const [key, question] of Object.entries(questions)) {
     const q = 'prompt' in question ? await question.prompt() : question;
@@ -160,5 +165,5 @@ async function show<const T extends QuestionList<string>>(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-  return context as AnswerList<T>;
+  return context as AnswerList<P, Q>;
 }

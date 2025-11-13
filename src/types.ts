@@ -1,13 +1,18 @@
-export type Prompt<T extends QuestionList<string>> = {
+export type Prompt<
+  P extends PositionalArgument[],
+  Q extends QuestionList<string>,
+> = {
   /**
    * Show the prompt and wait for the user to answer.
    */
-  show: (options?: PromptOptions) => Promise<AnswerList<T>>;
+  show: (options?: PromptOptions) => Promise<AnswerList<P, Q>>;
   /**
    * Read the current answers from the prompt.
    */
-  read: () => FlatType<Partial<AnswerList<T>>>;
+  read: () => FlatType<Partial<AnswerList<P, Q>>>;
 };
+
+export type PositionalArgument = `<${string}>` | `[${string}]`;
 
 export type PromptOptions = {
   args?: string[];
@@ -51,11 +56,25 @@ export type Question =
   | ConfirmQuestion
   | SpinnerQuestion<unknown>;
 
-export type AnswerList<Questions extends QuestionList<string>> = FlatType<{
-  [key in keyof Questions]: Answer<
-    Questions[key] extends QuestionItem<infer Q> ? Q : never
+export type AnswerList<
+  P extends PositionalArgument[],
+  Q extends QuestionList<string>,
+> = FlatType<
+  PositionalArgumentValue<P> & {
+    [Key in keyof Q]: Answer<Q[Key] extends QuestionItem<infer Q> ? Q : never>;
+  }
+>;
+
+type PositionalArgumentValue<T extends PositionalArgument[]> =
+  UnionToIntersection<
+    {
+      [K in T[number]]: K extends `<${infer Name}>`
+        ? { readonly [Key in Name]: string }
+        : K extends `[${infer Name}]`
+          ? { readonly [Key in Name]?: string }
+          : never;
+    }[T[number]]
   >;
-}>;
 
 type Answer<T extends Question | null> = null extends T
   ? undefined | AnswerInternal<NonNullable<T>>
@@ -110,27 +129,10 @@ export type SpinnerQuestion<Result> = {
 
 type PromptType = 'text' | 'select' | 'multiselect' | 'confirm';
 
-type RequiredParameter<T extends string> = `<${T}>`;
-
-type OptionalParameter<T extends string> = `[${T}]`;
-
-type ParameterString<T extends string> =
-  | RequiredParameter<T>
-  | OptionalParameter<T>
-  | `${RequiredParameter<T>} ${string}`
-  | `${OptionalParameter<T>} ${string}`;
-
-export type ParameterList<T extends QuestionList<string>> = ParameterString<
-  Extract<
-    {
-      [K in keyof T]: T[K] extends QuestionItem<infer Q>
-        ? Q extends { type: 'text' }
-          ? K
-          : undefined
-        : undefined;
-    }[keyof T],
-    string
-  >
->;
-
 type FlatType<T> = { [K in keyof T]: T[K] } & {};
+
+export type UnionToIntersection<U> = (
+  U extends unknown ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never;

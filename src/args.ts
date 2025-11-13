@@ -1,44 +1,30 @@
-export function parseArgs(command: string, names: string[], args: string[]) {
-  if (!command.startsWith('$0 ')) {
-    throw new Error('Command must start with $0');
-  }
+import type { PositionalArgument } from './types.ts';
 
-  const positionals = command
-    .split(' ')
-    .filter(Boolean)
-    .slice(1)
-    .map((arg) => {
-      if (arg.startsWith('[') && arg.endsWith(']')) {
-        return {
-          name: arg.slice(1, -1),
-          optional: true,
-        };
-      } else if (arg.startsWith('<') && arg.endsWith('>')) {
-        return {
-          name: arg.slice(1, -1),
-          optional: false,
-        };
-      }
-
-      throw new Error(`Argument must be wrapped in [] or <> (got ${arg})`);
-    });
-
-  positionals.forEach(({ name }) => {
-    if (!names.includes(name)) {
-      throw new Error(
-        `Unknown positional argument ${name} (valid names: ${names.join(', ')})`
-      );
+export function parseArgs(positionals: PositionalArgument[], args: string[]) {
+  const parsedPositionals = positionals.map((arg) => {
+    if (arg.startsWith('[') && arg.endsWith(']')) {
+      return {
+        name: arg.slice(1, -1),
+        optional: true,
+      };
+    } else if (arg.startsWith('<') && arg.endsWith('>')) {
+      return {
+        name: arg.slice(1, -1),
+        optional: false,
+      };
     }
+
+    throw new Error(`Argument must be wrapped in [] or <> (got '${arg}')`);
   });
 
   let foundOptional = false;
 
-  for (const { name, optional } of positionals) {
+  for (const { name, optional } of parsedPositionals) {
     if (optional) {
       foundOptional = true;
     } else if (foundOptional) {
       throw new Error(
-        `Required argument ${name} must come before optional arguments`
+        `Required argument '${name}' must come before optional arguments`
       );
     }
   }
@@ -51,7 +37,7 @@ export function parseArgs(command: string, names: string[], args: string[]) {
     const arg = args[i];
 
     if (arg == null) {
-      throw new Error(`Invalid argument at index ${String(i)}`);
+      throw new Error(`Invalid argument at index '${String(i)}'`);
     }
 
     if (arg.startsWith('-')) {
@@ -61,13 +47,13 @@ export function parseArgs(command: string, names: string[], args: string[]) {
         const [key, value] = arg.split('=');
 
         if (key == null || value == null) {
-          throw new Error(`Invalid argument ${arg}`);
+          throw new Error(`Invalid argument '${arg}'`);
         }
 
         const name = getArgName(key);
 
         if (name in parsed) {
-          throw new Error(`Duplicate argument ${key}`);
+          throw new Error(`Duplicate argument '${key}'`);
         }
 
         parsed[name] = value;
@@ -81,16 +67,16 @@ export function parseArgs(command: string, names: string[], args: string[]) {
         const name = getArgName(arg);
 
         if (name in parsed) {
-          throw new Error(`Duplicate argument ${arg}`);
+          throw new Error(`Duplicate argument '${arg}'`);
         }
 
         parsed[name] = negate ? false : true;
       }
     } else if (positional) {
-      const item = positionals[i];
+      const item = parsedPositionals[i];
 
       if (item == null) {
-        throw new Error(`Invalid positional argument ${arg}`);
+        throw new Error(`Invalid positional argument '${arg}'`);
       }
 
       parsed[item.name] = arg;
@@ -107,8 +93,14 @@ export function parseArgs(command: string, names: string[], args: string[]) {
 
         parsed[name] = arg;
       } else {
-        throw new Error(`Invalid argument ${arg}`);
+        throw new Error(`Invalid argument '${arg}'`);
       }
+    }
+  }
+
+  for (const { name, optional } of parsedPositionals) {
+    if (!optional && !(name in parsed)) {
+      throw new Error(`Missing required positional argument '${name}'`);
     }
   }
 
