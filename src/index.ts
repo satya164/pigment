@@ -148,6 +148,16 @@ async function show<
         : false;
 
     if (skip) {
+      if ('initial' in q) {
+        const initial: unknown =
+          typeof q.initial === 'function'
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              await q.initial()
+            : q.initial;
+
+        context[key] = initial;
+      }
+
       continue;
     }
 
