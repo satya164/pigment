@@ -17,6 +17,7 @@ export type PositionalArgument = `<${string}>` | `[${string}]`;
 export type PromptOptions = {
   name: string;
   description?: string;
+  version?: string;
   args?: string[];
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;

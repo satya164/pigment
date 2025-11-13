@@ -131,6 +131,7 @@ const pigment = create(['<name>', '[directory]'], {
 const result = await pigment.show({
   name: 'pigment-demo',
   description: 'A demo of pigment CLI prompt',
+  version: '0.42.0',
   onCancel: () => {
     process.stdout.write('Prompt cancelled\n');
     process.exit(0);

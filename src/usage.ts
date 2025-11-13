@@ -34,6 +34,10 @@ export function usage({
 
   const startup: Detail[] = [
     {
+      name: '-v, --version',
+      description: 'Print the version number and exit',
+    },
+    {
       name: '-h, --help',
       description: 'Show this help message and exit',
     },

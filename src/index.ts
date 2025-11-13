@@ -33,6 +33,7 @@ async function show<
   {
     name,
     description,
+    version,
     args = process.argv.slice(2),
     stdin = process.stdin,
     stdout = process.stdout,
@@ -42,16 +43,33 @@ async function show<
     onCancel = () => process.exit(0),
   }: PromptOptions
 ): Promise<AnswerList<P, Q>> {
-  if (args.length === 1 && (args[0] === '-h' || args[0] === '--help')) {
-    usage({
-      name,
-      description,
-      positionals,
-      questions,
-      stdout,
-    });
+  if (args.length === 1) {
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+    switch (args[0]) {
+      case '-v':
+      case '--version': {
+        if (version != null) {
+          stdout.write(`${version}\n`);
 
-    process.exit(0);
+          process.exit(0);
+        }
+
+        break;
+      }
+
+      case '-h':
+      case '--help': {
+        usage({
+          name,
+          description,
+          positionals,
+          questions,
+          stdout,
+        });
+
+        process.exit(0);
+      }
+    }
   }
 
   const parsed = parseArgs(positionals, questions, args);
