@@ -63,6 +63,12 @@ export async function text(
   let answer = initialResult;
 
   const updateFooter = () => {
+    // Prefill the input with the initial answer if it exists
+    if (initialResult != null) {
+      // Use stdout to fake input since the text contains escape codes for styling
+      stdout.write(styleText(components.theme.hint, initialResult));
+    }
+
     const validationText =
       validation !== true ? `${components.error({ validation })}\n` : '';
     const validationLeadingWhitespaceCount =
@@ -156,18 +162,14 @@ export async function text(
     stdin.off('data', onData);
   });
 
+  stdout.on('resize', updateFooter);
+
   while (true) {
     const promise = rl.question(prompt);
 
     // If there was a validation error, keep the previous answer
     if (validation !== true && answer != null) {
       rl.write(answer);
-    }
-
-    // Prefill the input with the initial answer if it exists
-    if (initialResult != null) {
-      // Use stdout to fake input since the text contains escape codes for styling
-      stdout.write(styleText(components.theme.hint, initialResult));
     }
 
     updateFooter();
@@ -192,6 +194,9 @@ export async function text(
   }
 
   rl.close();
+
+  stdin.off('data', onData);
+  stdout.off('resize', updateFooter);
 
   update(
     components.text({

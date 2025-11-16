@@ -20,18 +20,14 @@ export async function select<
     | SelectQuestion<SelectChoice>
     | MultiSelectQuestion<SelectChoice>
     | ConfirmQuestion,
->(
-  question: T,
-  { stdin, stdout, onCancel }: QuestionOptions
-): Promise<
-  T extends SelectQuestion<infer Choice>
+  R = T extends SelectQuestion<infer Choice>
     ? Choice['value']
     : T extends MultiSelectQuestion<infer Choice>
       ? Choice
       : T extends ConfirmQuestion
         ? boolean
-        : never
-> {
+        : never,
+>(question: T, { stdin, stdout, onCancel }: QuestionOptions): Promise<R> {
   const message = question.message;
   const type = question.type === 'confirm' ? 'select' : question.type;
   const choices =
@@ -104,9 +100,11 @@ export async function select<
 
   stdout.write(ansiEscapes.cursorHide);
 
-  const { update } = render(getText(false), stdout);
+  const { update, rerender } = render(getText(false), stdout);
 
-  return new Promise((resolve, reject) => {
+  let removeListeners: (() => void) | undefined;
+
+  const result = await new Promise<R>((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
       const key = data.toString();
 
@@ -216,5 +214,15 @@ export async function select<
     };
 
     stdin.on('data', onKeyPress);
+    stdout.on('resize', rerender);
+
+    removeListeners = () => {
+      stdin.off('data', onKeyPress);
+      stdout.off('resize', rerender);
+    };
   });
+
+  removeListeners?.();
+
+  return result;
 }
