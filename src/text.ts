@@ -1,8 +1,13 @@
-import ansiEscapes from 'ansi-escapes';
-import type { Key } from 'readline';
+import {
+  cursorPrevLine,
+  eraseDown,
+  eraseEndLine,
+  eraseLine,
+} from 'ansi-escapes';
+import { stripVTControlCharacters, styleText } from 'node:util';
 import { createInterface } from 'readline/promises';
-import { styleText } from 'util';
 import * as components from './components.ts';
+import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
 import type { QuestionOptions } from './select.ts';
 import type { TextQuestion } from './types.ts';
@@ -37,116 +42,156 @@ export async function text(
     status: 'pending',
   });
 
-  const lines = text.split('\n');
+  if (text.includes('<input>') && !text.includes('<input>\n')) {
+    throw new Error(
+      `Input placeholder '<input>' must be followed by a newline.`
+    );
+  }
+
+  const [before = '', after = ''] = text.includes('<input>\n')
+    ? text.split('<input>\n')
+    : [text, ''];
+
+  const lines = before.split('\n');
   const prompt = lines.pop() ?? '';
 
-  const { update } = render(text, stdout);
+  const { update } = render(before, stdout);
 
-  const initialResult =
-    typeof initial === 'function' ? await initial() : initial;
+  let initialResult = typeof initial === 'function' ? await initial() : initial;
+  let validation: string | boolean = true;
 
-  let error: string | undefined;
   let answer = initialResult;
 
-  const promise = rl.question(prompt);
+  const updateFooter = () => {
+    const validationText =
+      validation !== true ? `${components.error({ validation })}\n` : '';
+    const validationLeadingWhitespaceCount =
+      validationText.match(/^[\s]+/)?.[0].length ?? 0;
 
-  const onKeyPressOnce = (callback: (text: string, key: Key) => void) => {
-    stdin.once('keypress', callback);
+    const lines = [];
 
-    const remove = () => {
-      stdin.off('keypress', callback);
-    };
+    let containsValidation = false;
 
-    // Also remove the listener when the prompt is closed
-    // So it doesn't affect unrelated prompts
-    rl.once('close', remove);
+    // If validation text starts with whitespace, and the prompt footer is smaller,
+    // We can merge both for a more compact display
+    for (const line of after.split('\n')) {
+      const visibleLength = stripVTControlCharacters(line).length;
+
+      if (
+        !containsValidation &&
+        visibleLength <= validationLeadingWhitespaceCount
+      ) {
+        lines.push(`${line}${validationText.slice(visibleLength)}`);
+        containsValidation = true;
+      } else {
+        lines.push(line);
+      }
+    }
+
+    if (!containsValidation) {
+      lines.push(validationText);
+    }
+
+    const content = lines.join('\n');
+
+    // The cursor position doesn't include pre-filled text as it's not in the input
+    // So we need to add the length of the answer to get the correct column
+    const col = rl.getCursorPos().cols + (initialResult?.length ?? 0);
+
+    // Write the footer content on the next line
+    stdout.cursorTo(0);
+    stdout.write(`\n${content}`);
+
+    // Clear everything below
+    // Otherwise any previous error messages would remain
+    stdout.write(eraseDown);
+
+    // Move back to the prompt position
+    stdout.moveCursor(0, -content.split('\n').length);
+    stdout.cursorTo(col);
   };
 
-  if (initialResult != null) {
-    stdout.write(styleText(components.theme.hint, initialResult));
+  const onData = (data: Buffer) => {
+    const key = data.toString('ascii');
 
-    onKeyPressOnce((text, key) => {
-      // Clear the initial value from the prompt unless it's a confirm
-      if (key.name !== 'return') {
-        stdout.cursorTo(prompt.length);
-        stdout.write(ansiEscapes.eraseLine);
+    // Don't do anything if it's confirm
+    if (key === KEYCODES.ENTER) {
+      return;
+    }
 
-        if (
-          key.name !== 'backspace' &&
-          key.name !== 'delete' &&
-          key.name !== 'left' &&
-          key.name !== 'right' &&
-          key.name !== 'up' &&
-          key.name !== 'down'
-        ) {
-          // Write the data to stdout so it's visible in the prompt
-          stdout.write(text);
-        }
+    const isArrow =
+      key === KEYCODES.ARROW_LEFT ||
+      key === KEYCODES.ARROW_RIGHT ||
+      key === KEYCODES.ARROW_UP ||
+      key === KEYCODES.ARROW_DOWN;
 
-        answer = undefined;
+    const isDelete = key === KEYCODES.BACKSPACE || key === KEYCODES.DELETE;
+
+    if (initialResult != null) {
+      initialResult = undefined;
+      answer = undefined;
+
+      stdout.cursorTo(stripVTControlCharacters(prompt).length);
+      stdout.write(eraseEndLine);
+
+      if (!(isArrow || isDelete)) {
+        // Write the data to stdout so it's visible in the prompt
+        stdout.write(data);
       }
-    });
-  }
+    }
 
-  const result = await promise;
+    // Clear validation error when user starts typing
+    if (!isArrow) {
+      validation = true;
 
-  // Only use the result if it's not empty
-  // Or the answer is not set from the initial value
-  if (answer == null || result !== '') {
-    answer = result;
-  }
+      updateFooter();
+    }
+  };
+
+  stdin.on('data', onData);
+
+  // Also remove the listener when the prompt is closed
+  // So it doesn't affect unrelated prompts
+  rl.on('close', () => {
+    stdin.off('data', onData);
+  });
 
   while (true) {
-    // Clear the line added by the question
-    stdout.write(`${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLine}`);
+    const promise = rl.question(prompt);
 
-    if (validate) {
-      const validation = validate(answer);
+    // If there was a validation error, keep the previous answer
+    if (validation !== true && answer != null) {
+      rl.write(answer);
+    }
 
-      if (validation === true) {
-        break;
-      } else {
-        const promise = rl.question(prompt);
+    // Prefill the input with the initial answer if it exists
+    if (initialResult != null) {
+      // Use stdout to fake input since the text contains escape codes for styling
+      stdout.write(styleText(components.theme.hint, initialResult));
+    }
 
-        // Fill the prompt with the previous answer
-        rl.write(answer);
+    updateFooter();
 
-        error = components.error({ validation });
+    const result = await promise;
 
-        stdout.write(`\n${error}`);
+    // Only use the result if it's not empty
+    // Or the answer is not set from the initial value
+    if (answer == null || result !== '') {
+      answer = result;
+    }
 
-        stdout.moveCursor(0, -error.split('\n').length);
-        stdout.cursorTo(prompt.length + answer.length);
+    // eslint-disable-next-line require-atomic-updates
+    validation = validate ? validate(answer) : true;
 
-        const errorLines = error.split('\n').length;
-        const promptEndPosition = prompt.length + answer.length + 1;
+    // Clear the new line added by the question
+    stdout.write(`${cursorPrevLine}${eraseLine}`);
 
-        // Clear validation error on next key press
-        onKeyPressOnce((_, key) => {
-          if (
-            key.name !== 'return' &&
-            key.name !== 'backspace' &&
-            key.name !== 'delete' &&
-            key.name !== 'left' &&
-            key.name !== 'right' &&
-            key.name !== 'up' &&
-            key.name !== 'down'
-          ) {
-            stdout.moveCursor(0, errorLines);
-            stdout.write(ansiEscapes.eraseLines(errorLines));
-            stdout.moveCursor(promptEndPosition, -1);
-          }
-        });
-
-        // eslint-disable-next-line require-atomic-updates
-        answer = await promise;
-
-        continue;
-      }
-    } else {
+    if (validation === true) {
       break;
     }
   }
+
+  rl.close();
 
   update(
     components.text({
@@ -156,17 +201,7 @@ export async function text(
     })
   );
 
-  if (error != null && error.length) {
-    const count = error.split('\n').length;
-
-    stdout.moveCursor(0, count);
-    stdout.write(ansiEscapes.eraseLines(count));
-    stdout.moveCursor(0, -count);
-  }
-
   stdout.write('\n');
-
-  rl.close();
 
   return answer;
 }

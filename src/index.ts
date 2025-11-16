@@ -1,3 +1,4 @@
+import { styleText } from 'util';
 import { parseArgs } from './args.ts';
 import { select } from './select.ts';
 import { spinner } from './spinner.ts';
@@ -218,6 +219,7 @@ async function show<
           break;
       }
     } finally {
+      stdout.write(styleText('reset', ''));
       stdin.setRawMode(false);
       stdin.pause();
     }
