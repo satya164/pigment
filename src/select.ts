@@ -173,7 +173,7 @@ export async function select<
           }
 
           if (validation === true) {
-            stdin.removeListener('data', onKeyPress);
+            stdin.off('data', onKeyPress);
 
             update(getText(true));
 
@@ -199,7 +199,7 @@ export async function select<
 
           break;
         case KEYCODES.CONTROL_C: {
-          stdin.removeListener('data', onKeyPress);
+          stdin.off('data', onKeyPress);
 
           update(getText(false, true));
 
@@ -215,6 +215,6 @@ export async function select<
       }
     };
 
-    stdin.addListener('data', onKeyPress);
+    stdin.on('data', onKeyPress);
   });
 }

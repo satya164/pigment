@@ -31,7 +31,7 @@ export async function spinner<T>(
     const key = data.toString();
 
     if (key === KEYCODES.CONTROL_C) {
-      stdin.removeListener('data', onKeyPress);
+      stdin.off('data', onKeyPress);
 
       clearInterval(interval);
 
@@ -46,7 +46,7 @@ export async function spinner<T>(
     }
   };
 
-  stdin.addListener('data', onKeyPress);
+  stdin.on('data', onKeyPress);
 
   try {
     const generator = task();
@@ -66,7 +66,7 @@ export async function spinner<T>(
     }
   } finally {
     clearInterval(interval);
-    stdin.removeListener('data', onKeyPress);
+    stdin.off('data', onKeyPress);
     stdout.write(ansiEscapes.cursorShow);
   }
 

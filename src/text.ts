@@ -16,7 +16,7 @@ export async function text(
     output: stdout,
   });
 
-  rl.addListener('SIGINT', () => {
+  rl.once('SIGINT', () => {
     rl.close();
 
     update(
@@ -51,18 +51,12 @@ export async function text(
   const promise = rl.question(prompt);
 
   const onKeyPressOnce = (callback: (data: Buffer) => void) => {
-    const onKeyPress = (data: Buffer) => {
-      callback(data);
-
-      stdin.removeListener('data', onKeyPress);
-    };
-
-    stdin.addListener('data', onKeyPress);
+    stdin.once('data', callback);
 
     // Also remove the listener when the prompt is closed
     // So it doesn't affect unrelated prompts
-    rl.addListener('close', () => {
-      stdin.removeListener('data', onKeyPress);
+    rl.once('close', () => {
+      stdin.off('data', callback);
     });
   };
 
