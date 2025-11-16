@@ -7,7 +7,7 @@ export const theme = {
   selected: 'cyan',
   question: 'cyan',
   done: 'green',
-  hint: 'dim',
+  hint: 'gray',
   separator: 'gray',
   error: 'red',
 } as const satisfies Record<string, Parameters<typeof styleText>[0]>;
@@ -21,7 +21,7 @@ export function text({
   answer?: string;
   status: Status;
 }) {
-  return `${question({ message, status })}\n  ${answer != null ? styleText(theme.hint, answer) : ''}`;
+  return `${question({ message, status })}\n${border()} ${status !== 'pending' ? styleText(theme.hint, answer ?? '') : `<input>\n${styleText(theme.separator, '└')}`}`;
 }
 
 export function confirm({
@@ -40,7 +40,7 @@ export function confirm({
 
     return [
       question({ message, status }),
-      `  ${styleText(theme.hint, String(answer))}`,
+      `${border()} ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
@@ -73,7 +73,7 @@ export function select({
 
     return [
       question({ message, status }),
-      `  ${styleText(theme.hint, String(answer))}`,
+      `${border()} ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
 
@@ -107,7 +107,7 @@ export function multiselect({
   if (status === 'done') {
     return [
       question({ message, status }),
-      `  ${styleText(
+      `${border()} ${styleText(
         theme.hint,
         choices
           .filter((choice) => answer.includes(choice.value))
@@ -140,7 +140,7 @@ function checkbox({
   choice: { title?: string; description?: string; value: unknown };
   active: boolean;
 }) {
-  const prefix = active ? styleText(theme.selected, `❯ ${icon}`) : `  ${icon}`;
+  const prefix = active ? styleText(theme.selected, `› ${icon}`) : `  ${icon}`;
 
   const title = choice.title != null ? choice.title : String(choice.value);
 
@@ -157,7 +157,11 @@ function question({ message, status }: { message: string; status: Status }) {
 
   const icon = status === 'done' ? '✔' : status === 'cancelled' ? '◼' : '?';
 
-  return `${styleText(format, icon)} ${styleText(theme.message, message)}`;
+  return `${border()}\n${styleText(format, icon)} ${styleText(theme.message, message)}`;
+}
+
+function border() {
+  return styleText(theme.separator, '│');
 }
 
 export function error({
@@ -168,7 +172,7 @@ export function error({
   const hint = validation === false ? 'Invalid input' : validation;
 
   if (hint != null && hint !== true) {
-    return styleText(theme.error, `  ${hint}`);
+    return `  ${styleText(theme.error, hint)}`;
   }
 
   return '';
@@ -191,8 +195,8 @@ export function spinner({
   const frame = frames[index];
 
   if (status === 'pending') {
-    return `${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
+    return `${border()}\n${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
   } else {
-    return `${question({ message, status })} ${answer != null ? `\n  ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
+    return `${question({ message, status })} ${answer != null ? `\n${border()} ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
   }
 }
