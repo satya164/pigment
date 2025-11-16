@@ -1,8 +1,8 @@
 import ansiEscapes from 'ansi-escapes';
+import type { Key } from 'readline';
 import { createInterface } from 'readline/promises';
 import { styleText } from 'util';
 import * as components from './components.ts';
-import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
 import type { QuestionOptions } from './select.ts';
 import type { TextQuestion } from './types.ts';
@@ -50,37 +50,37 @@ export async function text(
 
   const promise = rl.question(prompt);
 
-  const onKeyPressOnce = (callback: (data: Buffer) => void) => {
-    stdin.once('data', callback);
+  const onKeyPressOnce = (callback: (text: string, key: Key) => void) => {
+    stdin.once('keypress', callback);
+
+    const remove = () => {
+      stdin.off('keypress', callback);
+    };
 
     // Also remove the listener when the prompt is closed
     // So it doesn't affect unrelated prompts
-    rl.once('close', () => {
-      stdin.off('data', callback);
-    });
+    rl.once('close', remove);
   };
 
   if (initialResult != null) {
     stdout.write(styleText(components.theme.hint, initialResult));
 
-    onKeyPressOnce((data: Buffer) => {
-      const key = data.toString('ascii');
-
+    onKeyPressOnce((text, key) => {
       // Clear the initial value from the prompt unless it's a confirm
-      if (key !== KEYCODES.ENTER) {
+      if (key.name !== 'return') {
         stdout.cursorTo(prompt.length);
         stdout.write(ansiEscapes.eraseLine);
 
         if (
-          key !== KEYCODES.BACKSPACE &&
-          key !== KEYCODES.DELETE &&
-          key !== KEYCODES.ARROW_LEFT &&
-          key !== KEYCODES.ARROW_RIGHT &&
-          key !== KEYCODES.ARROW_UP &&
-          key !== KEYCODES.ARROW_DOWN
+          key.name !== 'backspace' &&
+          key.name !== 'delete' &&
+          key.name !== 'left' &&
+          key.name !== 'right' &&
+          key.name !== 'up' &&
+          key.name !== 'down'
         ) {
           // Write the data to stdout so it's visible in the prompt
-          stdout.write(data);
+          stdout.write(text);
         }
 
         answer = undefined;
@@ -122,17 +122,15 @@ export async function text(
         const promptEndPosition = prompt.length + answer.length + 1;
 
         // Clear validation error on next key press
-        onKeyPressOnce((data: Buffer) => {
-          const key = data.toString('ascii');
-
+        onKeyPressOnce((_, key) => {
           if (
-            key !== KEYCODES.ENTER &&
-            key !== KEYCODES.BACKSPACE &&
-            key !== KEYCODES.DELETE &&
-            key !== KEYCODES.ARROW_LEFT &&
-            key !== KEYCODES.ARROW_RIGHT &&
-            key !== KEYCODES.ARROW_UP &&
-            key !== KEYCODES.ARROW_DOWN
+            key.name !== 'return' &&
+            key.name !== 'backspace' &&
+            key.name !== 'delete' &&
+            key.name !== 'left' &&
+            key.name !== 'right' &&
+            key.name !== 'up' &&
+            key.name !== 'down'
           ) {
             stdout.moveCursor(0, errorLines);
             stdout.write(ansiEscapes.eraseLines(errorLines));
