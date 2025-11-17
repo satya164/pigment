@@ -52,20 +52,20 @@ export async function text(
 
   const { update } = render(before, stdout);
 
-  let defaultResult =
+  const defaultValue =
     typeof question.default === 'function'
       ? await question.default()
       : question.default;
 
+  let initialAnswer = defaultValue;
+  let answer = initialAnswer;
   let validation: string | boolean = true;
-
-  let answer = defaultResult;
 
   const updateFooter = () => {
     // Prefill the input with the default answer if it exists
-    if (defaultResult != null) {
+    if (initialAnswer != null) {
       // Use stdout to fake input since the text contains escape codes for styling
-      stdout.write(styleText(components.theme.hint, defaultResult));
+      stdout.write(styleText(components.theme.hint, initialAnswer));
     }
 
     const validationText =
@@ -101,7 +101,7 @@ export async function text(
 
     // The cursor position doesn't include pre-filled text as it's not in the input
     // So we need to add the length of the answer to get the correct column
-    const col = rl.getCursorPos().cols + (defaultResult?.length ?? 0);
+    const col = rl.getCursorPos().cols + (initialAnswer?.length ?? 0);
 
     // Clear everything below first
     // Otherwise any previous error messages would remain
@@ -134,8 +134,8 @@ export async function text(
 
     const isDelete = key === KEYCODES.BACKSPACE || key === KEYCODES.DELETE;
 
-    if (defaultResult != null) {
-      defaultResult = undefined;
+    if (initialAnswer != null) {
+      initialAnswer = undefined;
       answer = undefined;
 
       stdout.cursorTo(stripVTControlCharacters(prompt).length);
@@ -149,6 +149,19 @@ export async function text(
 
     // Clear validation error when user starts typing
     if (!isArrow) {
+      validation = true;
+    }
+
+    // Toggle initial value when using arrows on empty input
+    if (isArrow && rl.line.length === 0) {
+      if (key === KEYCODES.ARROW_UP || key === KEYCODES.ARROW_LEFT) {
+        initialAnswer = defaultValue;
+        answer = initialAnswer;
+      } else {
+        initialAnswer = undefined;
+        answer = undefined;
+      }
+
       validation = true;
     }
 
