@@ -38,9 +38,6 @@ async function show<
     args = process.argv.slice(2),
     stdin = process.stdin,
     stdout = process.stdout,
-    interactive = stdout.isTTY &&
-      process.env.TERM !== 'dumb' &&
-      (process.env.CI == null || process.env.CI === ''),
     onExit = () => process.exit(0),
     onCancel = () => process.exit(0),
   }: PromptOptions
@@ -74,7 +71,16 @@ async function show<
     }
   }
 
-  const parsed = parseArgs(positionals, questions, args);
+  const {
+    interactive = stdout.isTTY &&
+      process.env.TERM !== 'dumb' &&
+      (process.env.CI == null || process.env.CI === ''),
+    ...parsed
+  } = parseArgs(positionals, questions, args);
+
+  if (typeof interactive !== 'boolean') {
+    throw new Error(`Invalid value for 'interactive'. Expected boolean.`);
+  }
 
   for (const positional of positionals) {
     const key = positional.slice(1, -1);

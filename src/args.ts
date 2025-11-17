@@ -1,8 +1,8 @@
-import type { PositionalArgument, QuestionList } from './types.ts';
+import type { PositionalArgument } from './types.ts';
 
 export function parseArgs(
   positionals: PositionalArgument[],
-  questions: QuestionList<string>,
+  questions: Record<string, unknown>,
   args: string[]
 ) {
   const parsedPositionals = positionals.map((arg) => {
@@ -126,7 +126,7 @@ export function parseArgs(
         return [key, value];
       }
 
-      throw new Error(`Unknown argument '${k}'`);
+      return [k, value];
     })
   );
 }
