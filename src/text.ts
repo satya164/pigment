@@ -1,9 +1,4 @@
-import {
-  cursorPrevLine,
-  eraseDown,
-  eraseEndLine,
-  eraseLine,
-} from 'ansi-escapes';
+import ansiEscapes from 'ansi-escapes';
 import { stripVTControlCharacters, styleText } from 'node:util';
 import { createInterface } from 'readline/promises';
 import * as components from './components.ts';
@@ -106,7 +101,7 @@ export async function text(
 
     // Clear everything below first
     // Otherwise any previous error messages would remain
-    stdout.write(eraseDown);
+    stdout.write(ansiEscapes.eraseDown);
 
     // Add a new line to go to the next line
     // Otherwise it won't work correctly when there is no space below
@@ -140,7 +135,7 @@ export async function text(
       answer = undefined;
 
       stdout.cursorTo(stripVTControlCharacters(prompt).length);
-      stdout.write(eraseEndLine);
+      stdout.write(ansiEscapes.eraseEndLine);
 
       if (!(isArrow || isDelete)) {
         // Write the data to stdout so it's visible in the prompt
@@ -188,7 +183,7 @@ export async function text(
     validation = validate ? validate(answer) : true;
 
     // Clear the new line added by the question
-    stdout.write(`${cursorPrevLine}${eraseLine}`);
+    stdout.write(`${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLine}`);
 
     if (validation === true) {
       break;

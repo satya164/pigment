@@ -1,4 +1,4 @@
-import { cursorLeft, eraseLines } from 'ansi-escapes';
+import ansiEscapes from 'ansi-escapes';
 import wrap from 'wrap-ansi';
 
 export function render(text: string, stdout: NodeJS.WriteStream) {
@@ -16,8 +16,8 @@ export function render(text: string, stdout: NodeJS.WriteStream) {
 
     const prevLines = prevWrapped.split('\n');
 
-    stdout.write(cursorLeft);
-    stdout.write(eraseLines(prevLines.length));
+    stdout.write(ansiEscapes.cursorLeft);
+    stdout.write(ansiEscapes.eraseLines(prevLines.length));
 
     stdout.write(newText);
   };
