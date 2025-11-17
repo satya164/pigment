@@ -115,7 +115,7 @@ export function usage({
     text += `${title}:\n`;
 
     for (const detail of details) {
-      const separator = '    ';
+      const separator = '  ';
 
       const nameWithPadding = `  ${detail.name}${' '.repeat(
         maxOptionLength - detail.name.length
