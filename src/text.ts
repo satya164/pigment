@@ -104,15 +104,17 @@ export async function text(
     // So we need to add the length of the answer to get the correct column
     const col = rl.getCursorPos().cols + (initialResult?.length ?? 0);
 
-    // Write the footer content on the next line
-    stdout.cursorTo(0);
-    stdout.write(`\n${content}`);
-
-    // Clear everything below
+    // Clear everything below first
     // Otherwise any previous error messages would remain
     stdout.write(eraseDown);
 
-    // Move back to the prompt position
+    // Add a new line to go to the next line
+    // Otherwise it won't work correctly when there is no space below
+    stdout.cursorTo(0);
+    stdout.write(`\n`);
+
+    // Write the content, then move back to the prompt position
+    stdout.write(content);
     stdout.moveCursor(0, -content.split('\n').length);
     stdout.cursorTo(col);
   };
