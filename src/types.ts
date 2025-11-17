@@ -30,18 +30,12 @@ export type QuestionList<Name extends string> = {
   [key in Name]: QuestionItem<Question | null>;
 };
 
-type QuestionItem<T extends Question | null> =
-  | (T & {
-      description: string;
-      alias?: string;
-    })
-  | {
-      description: string;
-      alias?: string;
-      prompt(): T | Promise<T>;
-    };
+type QuestionItem<T extends Question | null> = T & {
+  description: string;
+  alias?: string;
+};
 
-export type SelectChoice =
+export type SelectChoice = (
   | {
       title?: string;
       description?: string;
@@ -51,7 +45,10 @@ export type SelectChoice =
       title: string;
       description?: string;
       value: unknown;
-    };
+    }
+) & {
+  skip?: boolean | (() => boolean | Promise<boolean>);
+};
 
 export type Question =
   | TextQuestion
@@ -82,7 +79,11 @@ type PositionalArgumentValue<T extends PositionalArgument[]> =
 
 type Answer<T extends Question | null> = null extends T
   ? undefined | AnswerInternal<NonNullable<T>>
-  : AnswerInternal<NonNullable<T>>;
+  : T extends Question & { skip: boolean | (() => Promise<boolean> | boolean) }
+    ? T extends Question & { initial: unknown }
+      ? AnswerInternal<NonNullable<T>>
+      : undefined | AnswerInternal<NonNullable<T>>
+    : AnswerInternal<NonNullable<T>>;
 
 type AnswerInternal<T extends Question> =
   T extends SelectQuestion<infer Choice>

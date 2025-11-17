@@ -81,20 +81,15 @@ const pigment = create(['<name>', '[directory]'], {
     initial: 'tea',
   },
   sugar: {
+    type: 'confirm',
     description: 'Whether the user likes sugar in their coffee',
-    async prompt() {
+    message: 'Do you like your coffee with sugar?',
+    skip: async (): Promise<boolean> => {
       await Promise.resolve();
 
       const answers = pigment.read();
 
-      if (answers.drink === 'coffee') {
-        return {
-          type: 'confirm',
-          message: 'Do you like your coffee with sugar?',
-        };
-      }
-
-      return null;
+      return answers.drink !== 'coffee';
     },
   },
   animal: {
@@ -115,6 +110,15 @@ const pigment = create(['<name>', '[directory]'], {
         title: 'Apple',
         description: 'An apple a day keeps the doctor away',
         value: 'apple',
+      },
+      {
+        title: 'Avocado',
+        value: 'avocado',
+        skip: (): boolean => {
+          const answers = pigment.read();
+
+          return answers.drink !== 'coffee';
+        },
       },
       { title: 'Banana', value: 'banana' },
       { title: 'Orange', value: 'orange' },
@@ -155,7 +159,7 @@ expectTypeOf(result).toEqualTypeOf<
     drink: 'coffee' | 'tea';
     sugar: boolean | undefined;
     animal: 'otter'[];
-    fruits: ('apple' | 'banana' | 'orange')[];
+    fruits: ('apple' | 'avocado' | 'banana' | 'orange')[];
     feeling: string;
   }>
 >();

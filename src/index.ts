@@ -91,10 +91,27 @@ async function show<
   }
 
   for (const [key, question] of Object.entries(questions)) {
-    const q = 'prompt' in question ? await question.prompt() : question;
+    let q = question;
 
-    if (q === null) {
-      continue;
+    if ('choices' in q) {
+      const choices = (
+        await Promise.all(
+          q.choices.map(async (choice) => {
+            if ('skip' in choice) {
+              const skip =
+                typeof choice.skip === 'function'
+                  ? await choice.skip()
+                  : choice.skip;
+
+              return skip === false ? choice : null;
+            }
+
+            return choice;
+          })
+        )
+      ).filter((choice) => choice !== null);
+
+      q = { ...q, choices };
     }
 
     if (key in parsed) {
