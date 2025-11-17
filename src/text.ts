@@ -8,7 +8,7 @@ import type { QuestionOptions } from './select.ts';
 import type { TextQuestion } from './types.ts';
 
 export async function text(
-  { message, initial, validate }: TextQuestion,
+  question: TextQuestion,
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
   const rl = createInterface({
@@ -21,7 +21,7 @@ export async function text(
 
     update(
       components.text({
-        message,
+        message: question.message,
         status: 'cancelled',
         answer,
       })
@@ -33,7 +33,7 @@ export async function text(
   });
 
   const text = components.text({
-    message,
+    message: question.message,
     status: 'pending',
   });
 
@@ -52,16 +52,20 @@ export async function text(
 
   const { update } = render(before, stdout);
 
-  let initialResult = typeof initial === 'function' ? await initial() : initial;
+  let defaultResult =
+    typeof question.default === 'function'
+      ? await question.default()
+      : question.default;
+
   let validation: string | boolean = true;
 
-  let answer = initialResult;
+  let answer = defaultResult;
 
   const updateFooter = () => {
-    // Prefill the input with the initial answer if it exists
-    if (initialResult != null) {
+    // Prefill the input with the default answer if it exists
+    if (defaultResult != null) {
       // Use stdout to fake input since the text contains escape codes for styling
-      stdout.write(styleText(components.theme.hint, initialResult));
+      stdout.write(styleText(components.theme.hint, defaultResult));
     }
 
     const validationText =
@@ -97,7 +101,7 @@ export async function text(
 
     // The cursor position doesn't include pre-filled text as it's not in the input
     // So we need to add the length of the answer to get the correct column
-    const col = rl.getCursorPos().cols + (initialResult?.length ?? 0);
+    const col = rl.getCursorPos().cols + (defaultResult?.length ?? 0);
 
     // Clear everything below first
     // Otherwise any previous error messages would remain
@@ -130,8 +134,8 @@ export async function text(
 
     const isDelete = key === KEYCODES.BACKSPACE || key === KEYCODES.DELETE;
 
-    if (initialResult != null) {
-      initialResult = undefined;
+    if (defaultResult != null) {
+      defaultResult = undefined;
       answer = undefined;
 
       stdout.cursorTo(stripVTControlCharacters(prompt).length);
@@ -174,13 +178,13 @@ export async function text(
     const result = await promise;
 
     // Only use the result if it's not empty
-    // Or the answer is not set from the initial value
+    // Or the answer is not set from the default value
     if (answer == null || result !== '') {
       answer = result;
     }
 
     // eslint-disable-next-line require-atomic-updates
-    validation = validate ? validate(answer) : true;
+    validation = question.validate ? question.validate(answer) : true;
 
     // Clear the new line added by the question
     stdout.write(`${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLine}`);
@@ -197,7 +201,7 @@ export async function text(
 
   update(
     components.text({
-      message,
+      message: question.message,
       status: 'done',
       answer,
     })

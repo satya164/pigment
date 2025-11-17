@@ -206,14 +206,14 @@ async function show<
         : false;
 
     if (skip) {
-      if ('initial' in q) {
-        const initial: unknown =
-          typeof q.initial === 'function'
+      if ('default' in q) {
+        const defaultValue: unknown =
+          typeof q.default === 'function'
             ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              await q.initial()
-            : q.initial;
+              await q.default()
+            : q.default;
 
-        context[key] = initial;
+        context[key] = defaultValue;
       }
 
       continue;

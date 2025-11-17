@@ -80,12 +80,12 @@ export function usage({
               .join(', ')
           : undefined,
       default:
-        'initial' in question &&
-        question.initial != null &&
-        typeof question.initial !== 'function'
-          ? Array.isArray(question.initial)
-            ? question.initial.map((v) => `'${String(v)}'`).join(', ')
-            : String(question.initial)
+        'default' in question &&
+        question.default != null &&
+        typeof question.default !== 'function'
+          ? Array.isArray(question.default)
+            ? question.default.map((v) => `'${String(v)}'`).join(', ')
+            : String(question.default)
           : undefined,
     };
   });

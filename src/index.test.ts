@@ -7,7 +7,7 @@ const pigment = create(['<name>', '[directory]'], {
     alias: 'u',
     description: 'Name of the user',
     message: 'What is your name?',
-    initial: (): string => {
+    default: (): string => {
       const answers = pigment.read();
 
       if (answers.name != null) {
@@ -59,7 +59,7 @@ const pigment = create(['<name>', '[directory]'], {
     type: 'confirm',
     description: 'Whether the user is an adult',
     message: 'Are you over 18?',
-    initial: false,
+    default: false,
   },
   drink: {
     type: 'select',
@@ -78,7 +78,7 @@ const pigment = create(['<name>', '[directory]'], {
         value: 'tea',
       },
     ],
-    initial: 'tea',
+    default: 'tea',
   },
   sugar: {
     type: 'confirm',
@@ -99,7 +99,7 @@ const pigment = create(['<name>', '[directory]'], {
     choices: [{ title: 'Otter', value: 'otter' }],
     validate: (value) =>
       value.length > 0 ? true : 'Please select at least one animal',
-    initial: ['otter'],
+    default: ['otter'],
   },
   fruits: {
     type: 'multiselect',
@@ -123,7 +123,7 @@ const pigment = create(['<name>', '[directory]'], {
       { title: 'Banana', value: 'banana' },
       { title: 'Orange', value: 'orange' },
     ],
-    initial: ['apple', 'banana'],
+    default: ['apple', 'banana'],
   },
   feeling: {
     type: 'text',

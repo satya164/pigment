@@ -48,21 +48,21 @@ export async function select<
     }
   }
 
-  const initialValue: unknown =
-    typeof question.initial === 'function'
+  const defaultValue: unknown =
+    typeof question.default === 'function'
       ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        await question.initial()
-      : question.initial;
+        await question.default()
+      : question.default;
 
   let index =
     type === 'multiselect'
       ? 0
-      : question.initial != null
-        ? choices.findIndex((c) => c.value === initialValue)
+      : question.default != null
+        ? choices.findIndex((c) => c.value === defaultValue)
         : 0;
 
   let selected: unknown[] =
-    type === 'multiselect' && Array.isArray(initialValue) ? initialValue : [];
+    type === 'multiselect' && Array.isArray(defaultValue) ? defaultValue : [];
 
   let validation: string | boolean = true;
 
