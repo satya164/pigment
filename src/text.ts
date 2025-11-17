@@ -150,9 +150,11 @@ export async function text(
     // Clear validation error when user starts typing
     if (!isArrow) {
       validation = true;
-
-      updateFooter();
     }
+
+    // Always re-draw the footer
+    // Otherwise some inputs such as arrows clear anything after the prompt
+    updateFooter();
   };
 
   stdin.on('data', onData);
