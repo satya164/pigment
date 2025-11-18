@@ -65,7 +65,7 @@ export async function text(
     // Prefill the input with the default answer if it exists
     if (initialAnswer != null) {
       // Use stdout to fake input since the text contains escape codes for styling
-      stdout.write(styleText(components.theme.hint, initialAnswer));
+      stdout.write(styleText('dim', initialAnswer));
     }
 
     const validationText =

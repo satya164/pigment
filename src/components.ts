@@ -1,16 +1,28 @@
-import { styleText } from 'node:util';
+import { formatted } from './formatted.ts';
 
 type Status = 'pending' | 'done' | 'cancelled';
 
-export const theme = {
-  message: 'bold',
-  selected: 'cyan',
-  question: 'cyan',
-  done: 'green',
-  hint: 'gray',
-  separator: 'gray',
-  error: 'red',
-} as const satisfies Record<string, Parameters<typeof styleText>[0]>;
+const colored = ({ status }: { status?: Status } = {}) => {
+  const styles = {
+    s: 'bold',
+    i: status === 'done' ? 'green' : status === 'cancelled' ? 'gray' : 'cyan',
+    b: 'gray',
+    h: 'gray',
+    e: 'red',
+    r: 'reset',
+  } as const;
+
+  return formatted(styles);
+};
+
+function question({ message, status }: { message: string; status: Status }) {
+  const icon = status === 'done' ? '✔' : status === 'cancelled' ? '◼' : '?';
+
+  return colored({ status })`
+%b │
+%i ${icon} %s ${message}
+`;
+}
 
 export function text({
   message,
@@ -21,7 +33,18 @@ export function text({
   answer?: string;
   status: Status;
 }) {
-  return `${question({ message, status })}\n${border()} ${status !== 'pending' ? styleText(theme.hint, answer ?? '') : `<input>\n${styleText(theme.separator, '└')}`}`;
+  if (status === 'pending') {
+    return colored({ status })`
+${question({ message, status })}
+%b │ %r <input>
+%b └
+    `;
+  }
+
+  return colored({ status })`
+${question({ message, status })}
+%b │ %h ${answer ?? ''}
+`;
 }
 
 export function confirm({
@@ -38,23 +61,29 @@ export function confirm({
   if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
 
-    return [
-      question({ message, status }),
-      `${border()} ${styleText(theme.hint, String(answer))}`,
-    ].join('\n');
+    return colored({ status })`
+${question({ message, status })}
+%b │ %h ${answer}
+`;
   }
 
-  return `${question({ message, status })}\n  ${choices
+  const formattedChoices = choices
     .map((choice, i) => {
       const selected = i === index;
+      const text = choice.title ?? choice.value;
 
       if (selected) {
-        return styleText(theme.selected, String(choice.title ?? choice.value));
+        return colored({ status })`%i ${text}`;
       }
 
-      return choice.title;
+      return text;
     })
-    .join(styleText(theme.separator, ' / '))}`;
+    .join(colored({ status })`%b  /  `);
+
+  return colored({ status })`
+    ${question({ message, status })}
+    ${formattedChoices}
+  `;
 }
 
 export function select({
@@ -71,24 +100,29 @@ export function select({
   if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
 
-    return [
-      question({ message, status }),
-      `${border()} ${styleText(theme.hint, String(answer))}`,
-    ].join('\n');
+    return colored({ status })`
+${question({ message, status })}
+%b │ %h ${answer}
+`;
   }
 
-  return [
-    question({ message, status }),
-    ...choices.map((choice, i) => {
+  const choicesList = choices
+    .map((choice, i) => {
       const selected = i === index;
 
       return checkbox({
         icon: selected ? '●' : '○',
         choice,
         active: selected,
+        status,
       });
-    }),
-  ].join('\n');
+    })
+    .join('\n');
+
+  return colored({ status })`
+    ${question({ message, status })}
+    ${choicesList}
+  `;
 }
 
 export function multiselect({
@@ -105,63 +139,63 @@ export function multiselect({
   status: Status;
 }) {
   if (status === 'done') {
-    return [
-      question({ message, status }),
-      `${border()} ${styleText(
-        theme.hint,
-        choices
-          .filter((choice) => answer.includes(choice.value))
-          .map((choice) => choice.title ?? choice.value)
-          .join(', ')
-      )}`,
-    ].join('\n');
+    const answerText = choices
+      .filter((choice) => answer.includes(choice.value))
+      .map((choice) => choice.title ?? choice.value)
+      .join(', ');
+
+    return colored({ status })`
+${question({ message, status })}
+%b │ %h ${answerText}
+`;
   }
 
-  return [
-    question({ message, status }),
-    ...choices.map((choice, i) => {
+  const choicesList = choices
+    .map((choice, i) => {
       const selected = answer.includes(choice.value);
 
       return checkbox({
         icon: selected ? '◼' : '◻',
         choice,
         active: i === index,
+        status,
       });
-    }),
-  ].join('\n');
+    })
+    .join('\n');
+
+  return colored({ status })`
+    ${question({ message, status })}
+    ${choicesList}
+  `;
 }
 
 function checkbox({
   icon,
   choice,
   active,
+  status,
 }: {
   icon: string;
   choice: { title?: string; description?: string; value: unknown };
   active: boolean;
+  status: Status;
 }) {
-  const prefix = active ? styleText(theme.selected, `› ${icon}`) : `  ${icon}`;
-
   const title = choice.title != null ? choice.title : String(choice.value);
 
-  return `${prefix} ${active ? styleText(theme.selected, title) : title}${choice.description != null ? `\n    ${styleText(theme.hint, choice.description)}` : ''}`;
-}
+  if (active) {
+    if (choice.description != null) {
+      return colored({ status })`%i › ${icon} ${title}
+    %h ${choice.description}`;
+    }
+    return colored({ status })`%i › ${icon} ${title}`;
+  }
 
-function question({ message, status }: { message: string; status: Status }) {
-  const format =
-    status === 'done'
-      ? theme.done
-      : status === 'cancelled'
-        ? theme.hint
-        : theme.question;
+  if (choice.description != null) {
+    return colored({ status })`%r   ${icon} ${title}
+    %h ${choice.description}`;
+  }
 
-  const icon = status === 'done' ? '✔' : status === 'cancelled' ? '◼' : '?';
-
-  return `${border()}\n${styleText(format, icon)} ${styleText(theme.message, message)}`;
-}
-
-function border() {
-  return styleText(theme.separator, '│');
+  return colored({ status })`%r   ${icon} ${title}`;
 }
 
 export function error({
@@ -172,7 +206,9 @@ export function error({
   const hint = validation === false ? 'Invalid input' : validation;
 
   if (hint != null && hint !== true) {
-    return `  ${styleText(theme.error, hint)}`;
+    return colored()`
+%e ${hint}
+`;
   }
 
   return '';
@@ -195,8 +231,20 @@ export function spinner({
   const frame = frames[index];
 
   if (status === 'pending') {
-    return `${border()}\n${styleText(theme.question, frame!)} ${styleText(theme.message, message)}`;
-  } else {
-    return `${question({ message, status })} ${answer != null ? `\n${border()} ${styleText(theme.hint, typeof answer === 'string' ? answer : `…`)}` : ''}`;
+    return colored({ status })`
+%b │
+%i ${frame} %s ${message}
+`;
   }
+
+  if (answer != null) {
+    const answerText = typeof answer === 'string' ? answer : '…';
+
+    return colored({ status })`
+${question({ message, status })}
+%b │ %h ${answerText}
+    `;
+  }
+
+  return question({ message, status });
 }
