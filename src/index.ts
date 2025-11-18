@@ -1,5 +1,4 @@
-import { styleText } from 'util';
-import { parseArgs } from './args.ts';
+import { parseArgs, styleText } from 'node:util';
 import { select } from './select.ts';
 import { spinner } from './spinner.ts';
 import { text } from './text.ts';
@@ -71,22 +70,70 @@ async function show<
     }
   }
 
-  const {
-    interactive = stdout.isTTY &&
-      process.env.TERM !== 'dumb' &&
-      (process.env.CI == null || process.env.CI === ''),
-    ...parsed
-  } = parseArgs(positionals, questions, args);
+  const options = Object.fromEntries(
+    Object.entries(questions)
+      .map(([key, question]) => {
+        if (question.type === 'spinner') {
+          return null;
+        }
 
-  if (typeof interactive !== 'boolean') {
-    throw new Error(`Invalid value for 'interactive'. Expected boolean.`);
-  }
+        let type: 'string' | 'boolean' = 'string';
+        let multiple = false;
+
+        switch (question.type) {
+          case 'text':
+          case 'select':
+          case 'multiselect':
+            type = 'string';
+            multiple = question.type === 'multiselect';
+            break;
+          case 'confirm':
+            type = 'boolean';
+            break;
+        }
+
+        return [
+          key,
+          'alias' in question && question.alias != null
+            ? {
+                type,
+                multiple,
+                short: question.alias,
+              }
+            : {
+                type,
+                multiple,
+              },
+        ] as const;
+      })
+      .filter((entry) => entry != null)
+  );
+
+  const {
+    values: {
+      interactive = stdout.isTTY &&
+        process.env.TERM !== 'dumb' &&
+        (process.env.CI == null || process.env.CI === ''),
+      ...parsed
+    },
+    positionals: positionalArgs,
+  } = parseArgs({
+    args,
+    strict: true,
+    allowPositionals: true,
+    allowNegative: true,
+    options: {
+      interactive: { type: 'boolean' },
+      ...options,
+    },
+  });
 
   for (const positional of positionals) {
     const key = positional.slice(1, -1);
+    const value = positionalArgs.shift();
 
-    if (key in parsed) {
-      context[key] = parsed[key];
+    if (value != null) {
+      context[key] = value;
     }
   }
 
@@ -116,8 +163,8 @@ async function show<
 
     if (key in parsed) {
       let value: unknown =
-        parsed[key] ??
-        (question.alias != null ? parsed[question.alias] : undefined);
+        // @ts-expect-error: parsed doesn't have correct types
+        parsed[key];
 
       let error;
 
@@ -138,12 +185,11 @@ async function show<
           break;
         case 'multiselect':
           {
-            const result =
-              typeof value === 'string'
-                ? value.split(',')
-                : value === false
-                  ? []
-                  : null;
+            // Strip empty strings from array
+            // Allows --value= for empty array
+            const result = Array.isArray(value)
+              ? value.filter((v) => v !== '')
+              : null;
 
             if (
               result == null ||
@@ -159,8 +205,6 @@ async function show<
 
           break;
         case 'confirm':
-          value = value === 'true' ? true : value === 'false' ? false : value;
-
           if (typeof value !== 'boolean') {
             error = new Error(`Invalid value for '${key}'. Expected boolean.`);
           }
