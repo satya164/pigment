@@ -15,6 +15,23 @@ export function create<
   const P extends PositionalArgument[],
   const Q extends QuestionList<string>,
 >(positionals: P, questions: Q): Prompt<P, Q> {
+  // Ensure required positionals don't come after optional ones
+  let foundOptional = false;
+
+  for (const positional of positionals) {
+    const isOptional = positional.startsWith('[');
+
+    if (foundOptional && !isOptional) {
+      throw new Error(
+        `Invalid positional arguments: required argument '${positional}' cannot appear after optional arguments (got '${positionals.join(' ')}').`
+      );
+    }
+
+    if (isOptional) {
+      foundOptional = true;
+    }
+  }
+
   const context: Partial<AnswerList<P, Q>> = {};
 
   return {

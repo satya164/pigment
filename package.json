@@ -26,7 +26,7 @@
     "src"
   ],
   "scripts": {
-    "test": "node --experimental-strip-types src/index.test.ts",
+    "test": "node --test --experimental-strip-types  src/__tests__/*.test.ts",
     "prepare": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",

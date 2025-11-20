@@ -1,14 +1,13 @@
-import { expectTypeOf } from 'expect-type';
-import { create } from './index.ts';
+import { create } from '../index.ts';
 
-const pigment = create(['<name>', '[directory]'], {
+export const prompt = create(['<name>', '[directory]'], {
   username: {
     type: 'text',
     alias: 'u',
     description: 'Name of the user',
     message: 'What is your name?',
     default: (): string => {
-      const answers = pigment.read();
+      const answers = prompt.read();
 
       if (answers.name != null) {
         return answers.name;
@@ -87,7 +86,7 @@ const pigment = create(['<name>', '[directory]'], {
     skip: async (): Promise<boolean> => {
       await Promise.resolve();
 
-      const answers = pigment.read();
+      const answers = prompt.read();
 
       return answers.drink !== 'coffee';
     },
@@ -115,7 +114,7 @@ const pigment = create(['<name>', '[directory]'], {
         title: 'Avocado',
         value: 'avocado',
         skip: (): boolean => {
-          const answers = pigment.read();
+          const answers = prompt.read();
 
           return answers.drink !== 'coffee';
         },
@@ -131,38 +130,6 @@ const pigment = create(['<name>', '[directory]'], {
     message: 'How are you feeling today?',
   },
 });
-
-const result = await pigment.show({
-  name: 'pigment-demo',
-  description: 'A demo of pigment CLI prompt',
-  version: '0.42.0',
-  onCancel: () => {
-    process.stdout.write('Prompt cancelled\n');
-    process.exit(0);
-  },
-});
-
-console.log(result);
-
-expectTypeOf(result).toEqualTypeOf<
-  Readonly<{
-    name: string;
-    directory?: string;
-    username: string;
-    planet: 'earth';
-    pokemon: {
-      name: string;
-      types: string[];
-      abilities: string[];
-    };
-    adult: boolean;
-    drink: 'coffee' | 'tea';
-    sugar: boolean | undefined;
-    animal: 'otter'[];
-    fruits: ('apple' | 'avocado' | 'banana' | 'orange')[];
-    feeling: string;
-  }>
->();
 
 async function timeout(duration: number) {
   return new Promise((resolve) => {
