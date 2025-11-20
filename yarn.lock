@@ -3710,6 +3710,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mock-stdin@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "mock-stdin@npm:1.0.0"
+  checksum: 10c0/0e1cb6c355bb12307434cedbe73e891d95ea24357e5e0d29e426a7ba46d1efdfdaf6575bdfdc39247f47d16b84e2f77234e4be2bcd9ae2d2c0c96552858aae5e
+  languageName: node
+  linkType: hard
+
 "ms@npm:^2.1.1, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
@@ -4079,6 +4086,7 @@ __metadata:
     eslint-config-satya164: "npm:^5.1.5"
     expect-type: "npm:^1.2.2"
     lefthook: "npm:^2.0.4"
+    mock-stdin: "npm:^1.0.0"
     prettier: "npm:^3.6.2"
     release-it: "npm:^19.0.6"
     typescript: "npm:^5.9.3"

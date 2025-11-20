@@ -1,10 +1,8 @@
-import { recommended, typechecked, vitest } from 'eslint-config-satya164';
+import { recommended, typechecked } from 'eslint-config-satya164';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig(
-  // The base config
   recommended,
-  vitest,
   typechecked,
 
   {
