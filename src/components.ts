@@ -3,7 +3,7 @@ import { styleText } from 'node:util';
 type Status = 'pending' | 'done' | 'cancelled';
 
 export const theme = {
-  message: 'bold',
+  message: 'none',
   selected: 'cyan',
   question: 'cyan',
   done: 'green',
