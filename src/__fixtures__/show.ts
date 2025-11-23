@@ -11,6 +11,8 @@ const result = await prompt.show({
   },
 });
 
+console.log(result);
+
 expectTypeOf(result).toEqualTypeOf<
   Readonly<{
     name: string;
