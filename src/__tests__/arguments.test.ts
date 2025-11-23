@@ -736,7 +736,7 @@ void describe('miscellaneous', () => {
     assert.strictEqual(result.sugar, false);
   });
 
-  void test('skips spinner questions in args', async () => {
+  void test('runs spinner tasks in non-interactive mode', async () => {
     const prompt = create([], {
       data: {
         type: 'spinner',
@@ -763,8 +763,7 @@ void describe('miscellaneous', () => {
       stdout,
     });
 
-    // Spinner should not be processed in non-interactive mode
-    assert.strictEqual(result.data, undefined);
+    assert.strictEqual(result.data, 'result');
   });
 
   void test('throws error for extraneous arguments  ', async () => {

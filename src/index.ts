@@ -280,6 +280,13 @@ async function show<
       continue;
     }
 
+    // Always run spinner tasks
+    // even in non-interactive mode
+    if (q.type === 'spinner') {
+      context[key] = await spinner(q, options);
+      continue;
+    }
+
     if (!interactive) {
       // Check if required field is missing in non-interactive mode
       if ('required' in q && q.required === true && !(key in context)) {
@@ -304,9 +311,6 @@ async function show<
         case 'multiselect':
         case 'confirm':
           context[key] = await select(q, options);
-          break;
-        case 'spinner':
-          context[key] = await spinner(q, options);
           break;
       }
     } finally {

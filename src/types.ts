@@ -78,15 +78,18 @@ type PositionalArgumentValue<T extends PositionalArgument[]> =
 
 type DefaultValue<Value> = Value | (() => Value | Promise<Value>);
 
-type Answer<T extends Question | null> = T extends Question & {
-  required: true;
-  skip?: never;
-  default?: never;
-}
-  ? AnswerInternal<T>
-  : T extends Question & { default: DefaultValue<infer D> }
-    ? AnswerInternal<T> | D
-    : AnswerInternal<NonNullable<T>> | undefined;
+type Answer<T extends Question | null> =
+  T extends SpinnerQuestion<unknown>
+    ? AnswerInternal<T>
+    : T extends Question & {
+          required: true;
+          skip?: never;
+          default?: never;
+        }
+      ? AnswerInternal<T>
+      : T extends Question & { default: DefaultValue<infer D> }
+        ? AnswerInternal<T> | D
+        : AnswerInternal<NonNullable<T>> | undefined;
 
 type AnswerInternal<T extends Question> =
   T extends SelectQuestion<infer Choice>

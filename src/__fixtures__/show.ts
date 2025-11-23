@@ -16,13 +16,11 @@ expectTypeOf(result).toEqualTypeOf<
     name: string;
     directory?: string;
     username: string;
-    pokemon:
-      | {
-          name: string;
-          types: string[];
-          abilities: string[];
-        }
-      | undefined;
+    pokemon: {
+      name: string;
+      types: string[];
+      abilities: string[];
+    };
     planet: 'earth';
     adult: boolean;
     drink: 'coffee' | 'tea';
