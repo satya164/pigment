@@ -16,17 +16,19 @@ expectTypeOf(result).toEqualTypeOf<
     name: string;
     directory?: string;
     username: string;
+    pokemon:
+      | {
+          name: string;
+          types: string[];
+          abilities: string[];
+        }
+      | undefined;
     planet: 'earth';
-    pokemon: {
-      name: string;
-      types: string[];
-      abilities: string[];
-    };
     adult: boolean;
     drink: 'coffee' | 'tea';
     sugar: boolean | undefined;
-    animal: 'otter'[];
-    fruits: ('apple' | 'avocado' | 'banana' | 'orange')[];
-    feeling: string;
+    animal: ['otter'] | 'otter'[];
+    fruits: ('apple' | 'avocado' | 'banana' | 'orange')[] | undefined;
+    feeling: string | undefined;
   }>
 >();

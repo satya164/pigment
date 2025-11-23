@@ -201,6 +201,10 @@ export async function text(
     // eslint-disable-next-line require-atomic-updates
     validation = question.validate ? question.validate(answer) : true;
 
+    if (validation === true && question.required === true && answer === '') {
+      validation = false;
+    }
+
     // Clear the new line added by the question
     stdout.write(`${ansiEscapes.cursorPrevLine}${ansiEscapes.eraseLine}`);
 

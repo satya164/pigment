@@ -792,4 +792,87 @@ void describe('miscellaneous', () => {
       }
     );
   });
+
+  void test('throws error for missing required question in non-interactive mode', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        required: true,
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: [],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.match(
+          error.message,
+          /Missing required value for 'username'. Please provide a value using --username./
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('does not throw error for missing required question when value is provided', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        required: true,
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--username', 'Alice'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result.username, 'Alice');
+  });
+
+  void test('throws error for required question even when default is provided', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        required: true,
+        default: 'default-user',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: [],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.match(
+          error.message,
+          /Missing required value for 'username'. Please provide a value using --username./
+        );
+        return true;
+      }
+    );
+  });
 });

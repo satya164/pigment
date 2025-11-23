@@ -16,6 +16,7 @@ export const prompt = create(['<name>', '[directory]'], {
       return 'John Doe';
     },
     validate: (value) => value.length > 3,
+    required: true,
   },
   pokemon: {
     type: 'spinner',
@@ -53,6 +54,7 @@ export const prompt = create(['<name>', '[directory]'], {
     description: 'Planet of the user',
     message: 'Which planet do you live on?',
     choices: [{ title: 'Earth', value: 'earth' }],
+    required: true,
   },
   adult: {
     type: 'confirm',
@@ -78,6 +80,7 @@ export const prompt = create(['<name>', '[directory]'], {
       },
     ],
     default: 'tea',
+    required: true,
   },
   sugar: {
     type: 'confirm',
@@ -90,6 +93,7 @@ export const prompt = create(['<name>', '[directory]'], {
 
       return answers.drink !== 'coffee';
     },
+    required: true,
   },
   animal: {
     type: 'multiselect',
@@ -99,6 +103,7 @@ export const prompt = create(['<name>', '[directory]'], {
     validate: (value) =>
       value.length > 0 ? true : 'Please select at least one animal',
     default: ['otter'],
+    required: true,
   },
   fruits: {
     type: 'multiselect',
@@ -122,7 +127,6 @@ export const prompt = create(['<name>', '[directory]'], {
       { title: 'Banana', value: 'banana' },
       { title: 'Orange', value: 'orange' },
     ],
-    default: ['apple', 'banana'],
   },
   feeling: {
     type: 'text',

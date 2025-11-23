@@ -281,6 +281,13 @@ async function show<
     }
 
     if (!interactive) {
+      // Check if required field is missing in non-interactive mode
+      if ('required' in q && q.required === true && !(key in context)) {
+        throw new Error(
+          `Missing required value for '${key}'. Please provide a value using --${key}.`
+        );
+      }
+
       continue;
     }
 

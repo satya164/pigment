@@ -76,13 +76,17 @@ type PositionalArgumentValue<T extends PositionalArgument[]> =
     }[T[number]]
   >;
 
-type Answer<T extends Question | null> = null extends T
-  ? undefined | AnswerInternal<NonNullable<T>>
-  : T extends Question & { skip: boolean | (() => Promise<boolean> | boolean) }
-    ? T extends Question & { default: unknown }
-      ? AnswerInternal<NonNullable<T>>
-      : undefined | AnswerInternal<NonNullable<T>>
-    : AnswerInternal<NonNullable<T>>;
+type DefaultValue<Value> = Value | (() => Value | Promise<Value>);
+
+type Answer<T extends Question | null> = T extends Question & {
+  required: true;
+  skip?: never;
+  default?: never;
+}
+  ? AnswerInternal<T>
+  : T extends Question & { default: DefaultValue<infer D> }
+    ? AnswerInternal<T> | D
+    : AnswerInternal<NonNullable<T>> | undefined;
 
 type AnswerInternal<T extends Question> =
   T extends SelectQuestion<infer Choice>
@@ -101,8 +105,9 @@ type BaseQuestion<Type extends PromptType, Value> = {
   type: Type;
   message: string;
   validate?: (value: Value) => boolean | string;
-  default?: Value | (() => Value | Promise<Value>);
+  default?: DefaultValue<Value | undefined>;
   skip?: boolean | (() => boolean | Promise<boolean>);
+  required?: boolean;
 };
 
 export type TextQuestion = BaseQuestion<'text', string>;
