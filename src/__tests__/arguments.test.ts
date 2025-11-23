@@ -874,4 +874,34 @@ void describe('miscellaneous', () => {
       }
     );
   });
+
+  void test('throws error for empty value in required text question', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        required: true,
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['--username='],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.match(
+          error.message,
+          /Invalid value for 'username'. It cannot be empty./
+        );
+        return true;
+      }
+    );
+  });
 });

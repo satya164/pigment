@@ -189,6 +189,10 @@ async function show<
         case 'text':
           if (typeof value !== 'string') {
             error = new Error(`Invalid value for '${key}'. Expected string.`);
+          } else if ('required' in q && q.required === true && value === '') {
+            error = new Error(
+              `Invalid value for '${key}'. It cannot be empty.`
+            );
           }
 
           break;
