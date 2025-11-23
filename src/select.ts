@@ -100,13 +100,103 @@ export async function select<
 
   stdout.write(ansiEscapes.cursorHide);
 
+  // Get cursor position BEFORE rendering to calculate mouse click offsets
+  let startY = 0;
+  const getCursorPosition = new Promise<void>((resolve) => {
+    const onResponse = (data: Buffer) => {
+      const response = data.toString();
+      // CPR response format: ESC[row;colR
+      // eslint-disable-next-line no-control-regex
+      const match = response.match(/\x1b\[(\d+);(\d+)R/);
+      if (match && match[1] != null) {
+        startY = parseInt(match[1], 10);
+        stdin.off('data', onResponse);
+        resolve();
+      }
+    };
+
+    stdin.on('data', onResponse);
+    // Request cursor position (CPR - Cursor Position Report)
+    stdout.write('\x1b[6n');
+
+    // Fallback timeout
+    setTimeout(() => {
+      stdin.off('data', onResponse);
+      resolve();
+    }, 100);
+  });
+
+  await getCursorPosition;
+
   const { update, rerender } = render(getText(false), stdout);
 
   let removeListeners: (() => void) | undefined;
 
+  // Enable mouse tracking
+  stdout.write('\x1b[?1000h'); // Enable mouse button tracking
+  stdout.write('\x1b[?1002h'); // Enable mouse button and motion tracking
+  stdout.write('\x1b[?1015h'); // Enable urxvt extended mouse mode
+  stdout.write('\x1b[?1006h'); // Enable SGR extended mouse mode
+
   const result = await new Promise<R>((resolve, reject) => {
+    const disableMouseTracking = () => {
+      stdout.write('\x1b[?1000l'); // Disable mouse button tracking
+      stdout.write('\x1b[?1002l'); // Disable mouse button and motion tracking
+      stdout.write('\x1b[?1015l'); // Disable urxvt extended mouse mode
+      stdout.write('\x1b[?1006l'); // Disable SGR extended mouse mode
+    };
+
     const onKeyPress = (data: Buffer) => {
       const key = data.toString();
+
+      // Parse mouse events (SGR format: \x1b[<button;x;y;M or m)
+      // eslint-disable-next-line no-control-regex
+      const mouseMatch = key.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
+      if (mouseMatch) {
+        const button = mouseMatch[1];
+        const y = mouseMatch[3];
+        const action = mouseMatch[4];
+
+        // Only handle left click (button 0) on mouse down (M)
+        if (button === '0' && action === 'M' && y != null) {
+          const clickY = parseInt(y, 10);
+
+          // Calculate the relative line from the start of our prompt
+          // startY is where the first line of text was rendered
+          // clickY is the absolute position in the terminal
+          const relativeY = clickY - startY;
+
+          // First line (0) is the question, subsequent lines are choices
+          // So choice index = relativeY - 1
+          const clickedIndex = relativeY - 1;
+
+          if (clickedIndex >= 0 && clickedIndex < choices.length) {
+            if (type === 'multiselect') {
+              // For multiselect, toggle the clicked choice
+              validation = true;
+              index = clickedIndex;
+
+              const choice = choices[clickedIndex];
+              if (choice !== undefined) {
+                if (selected.includes(choice.value)) {
+                  selected = selected.filter((c) => c !== choice.value);
+                } else {
+                  selected.push(choice.value);
+                }
+              }
+
+              update(getText(false));
+            } else {
+              // For select, just update the index
+              validation = true;
+              index = clickedIndex;
+              update(getText(false));
+            }
+          }
+        }
+
+        return;
+      }
 
       switch (key) {
         case KEYCODES.ARROW_UP:
@@ -175,6 +265,7 @@ export async function select<
 
             update(getText(true));
 
+            disableMouseTracking();
             stdout.write(ansiEscapes.cursorShow);
             stdout.write(`\n`);
 
@@ -201,6 +292,7 @@ export async function select<
 
           update(getText(false, true));
 
+          disableMouseTracking();
           stdout.write(ansiEscapes.cursorShow);
           stdout.write('\n');
 
@@ -219,6 +311,7 @@ export async function select<
     removeListeners = () => {
       stdin.off('data', onKeyPress);
       stdout.off('resize', rerender);
+      disableMouseTracking();
     };
   });
 
