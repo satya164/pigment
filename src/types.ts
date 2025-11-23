@@ -34,18 +34,10 @@ type QuestionItem<T extends Question | null> = T & {
   alias?: string;
 };
 
-export type SelectChoice = (
-  | {
-      title?: string;
-      description?: string;
-      value: string;
-    }
-  | {
-      title: string;
-      description?: string;
-      value: unknown;
-    }
-) & {
+export type SelectChoice = {
+  title?: string;
+  description?: string;
+  value: string;
   skip?: boolean | (() => boolean | Promise<boolean>);
 };
 

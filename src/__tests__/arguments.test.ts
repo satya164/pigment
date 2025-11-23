@@ -309,39 +309,6 @@ void describe('select questions', () => {
     );
   });
 
-  void test('parses select argument with non-string value', async () => {
-    const prompt = create([], {
-      count: {
-        type: 'select',
-        description: 'Count',
-        message: 'Choose count',
-        choices: [
-          { title: 'One', value: 1 },
-          { title: 'Two', value: 2 },
-        ],
-      },
-    });
-
-    const { stdin, stdout } = createMockStreams();
-
-    // TODO: this should parse the argument as a number
-    // Note: parseArgs returns strings, so '1' !== 1
-    // This test verifies that validation properly rejects mismatched types
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--count', '1'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.match(error.message, /Invalid value for 'count'/);
-        return true;
-      }
-    );
-  });
-
   void test('validates select argument', async () => {
     const prompt = create([], {
       drink: {

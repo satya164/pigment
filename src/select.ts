@@ -50,8 +50,7 @@ export async function select<
 
   const defaultValue: unknown =
     typeof question.default === 'function'
-      ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        await question.default()
+      ? await question.default()
       : question.default;
 
   let index =

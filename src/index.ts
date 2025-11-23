@@ -199,7 +199,7 @@ async function show<
         case 'select':
           if (q.choices.every((c) => c.value !== value)) {
             error = new Error(
-              `Invalid value for '${key}'. Expected one of: ${q.choices.map((c) => `'${String(c.value)}'`).join(', ')}.`
+              `Invalid value for '${key}'. Expected one of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
             );
           }
 
@@ -217,7 +217,7 @@ async function show<
               result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new Error(
-                `Invalid value for '${key}'. Expected any of: ${q.choices.map((c) => `'${String(c.value)}'`).join(', ')}.`
+                `Invalid value for '${key}'. Expected any of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
               );
             }
 
@@ -274,10 +274,7 @@ async function show<
     if (skip) {
       if ('default' in q) {
         const defaultValue: unknown =
-          typeof q.default === 'function'
-            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              await q.default()
-            : q.default;
+          typeof q.default === 'function' ? await q.default() : q.default;
 
         context[key] = defaultValue;
       }

@@ -75,16 +75,14 @@ export function usage({
       description: question.description,
       choices:
         'choices' in question
-          ? question.choices
-              .map((choice) => `'${String(choice.value)}'`)
-              .join(', ')
+          ? question.choices.map((choice) => `'${choice.value}'`).join(', ')
           : undefined,
       default:
         'default' in question &&
         question.default != null &&
         typeof question.default !== 'function'
           ? Array.isArray(question.default)
-            ? question.default.map((v) => `'${String(v)}'`).join(', ')
+            ? question.default.map((v) => `'${v}'`).join(', ')
             : String(question.default)
           : undefined,
     };
