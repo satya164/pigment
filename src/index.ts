@@ -52,6 +52,7 @@ async function show<
     description,
     version,
     args = process.argv.slice(2),
+    env = process.env,
     stdin = process.stdin,
     stdout = process.stdout,
     onExit = () => process.exit(0),
@@ -129,8 +130,8 @@ async function show<
   const {
     values: {
       interactive = stdout.isTTY &&
-        process.env.TERM !== 'dumb' &&
-        (process.env.CI == null || process.env.CI === ''),
+        env.TERM !== 'dumb' &&
+        (env.CI == null || env.CI === ''),
       ...parsed
     },
     positionals: positionalArgs,

@@ -19,6 +19,7 @@ export type PromptOptions = {
   description?: string;
   version?: string;
   args?: string[];
+  env?: NodeJS.ProcessEnv;
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
   onExit?: () => void;

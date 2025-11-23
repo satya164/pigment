@@ -322,6 +322,7 @@ It takes an options object with the following properties:
 - `description`: A brief description of the CLI application. Shown in the help text with the `--help` flag.
 - `version`: The version of the CLI application. Shown with the `--version` flag.
 - `args`: An array of strings representing the command-line arguments. Defaults to `process.argv.slice(2)`.
+- `env`: An object representing the environment variables to read variables such as `CI`, `TERM`, etc. Defaults to `process.env`.
 - `stdin`: The readable stream to use for input. Defaults to `process.stdin`.
 - `stdout`: The writable stream to use for output. Defaults to `process.stdout`.
 - `onExit`: A callback function that is called when the prompt exits. Defaults to `process.exit`.
