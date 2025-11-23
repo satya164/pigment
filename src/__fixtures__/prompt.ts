@@ -19,7 +19,7 @@ export const prompt = create(['<name>', '[directory]'], {
     required: true,
   },
   pokemon: {
-    type: 'spinner',
+    type: 'task',
     description: 'Pokémon data',
     message: 'Looking for Pokémon…',
     task: async function* () {

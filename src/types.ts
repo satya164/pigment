@@ -54,7 +54,7 @@ export type Question =
   | SelectQuestion<SelectChoice>
   | MultiSelectQuestion<SelectChoice>
   | ConfirmQuestion
-  | SpinnerQuestion<unknown>;
+  | TaskQuestion<unknown>;
 
 export type AnswerList<
   P extends PositionalArgument[],
@@ -79,7 +79,7 @@ type PositionalArgumentValue<T extends PositionalArgument[]> =
 type DefaultValue<Value> = Value | (() => Value | Promise<Value>);
 
 type Answer<T extends Question | null> =
-  T extends SpinnerQuestion<unknown>
+  T extends TaskQuestion<unknown>
     ? AnswerInternal<T>
     : T extends Question & {
           required: true;
@@ -100,7 +100,7 @@ type AnswerInternal<T extends Question> =
         ? boolean
         : T extends TextQuestion
           ? string
-          : T extends SpinnerQuestion<infer Result>
+          : T extends TaskQuestion<infer Result>
             ? Result
             : never;
 
@@ -131,8 +131,8 @@ export type MultiSelectQuestion<Choice extends SelectChoice> = BaseQuestion<
 
 export type ConfirmQuestion = BaseQuestion<'confirm', boolean>;
 
-export type SpinnerQuestion<Result> = {
-  type: 'spinner';
+export type TaskQuestion<Result> = {
+  type: 'task';
   message: string;
   task: () => AsyncGenerator<
     { message?: string },
@@ -140,7 +140,7 @@ export type SpinnerQuestion<Result> = {
   >;
 };
 
-type PromptType = 'text' | 'select' | 'multiselect' | 'confirm';
+type PromptType = 'text' | 'select' | 'multiselect' | 'confirm' | 'task';
 
 type FlatType<T> = { [K in keyof T]: T[K] } & {};
 

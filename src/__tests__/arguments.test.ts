@@ -739,7 +739,7 @@ void describe('miscellaneous', () => {
   void test('runs spinner tasks in non-interactive mode', async () => {
     const prompt = create([], {
       data: {
-        type: 'spinner',
+        type: 'task',
         description: 'Loading data',
         message: 'Loading...',
         task: async function* () {

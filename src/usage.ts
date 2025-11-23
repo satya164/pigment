@@ -60,7 +60,7 @@ export function usage({
         case 'confirm':
           type = 'boolean';
           break;
-        case 'spinner':
+        case 'task':
           break;
         default:
           // exhaustive check

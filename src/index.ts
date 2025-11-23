@@ -90,7 +90,7 @@ async function show<
   const options = Object.fromEntries(
     Object.entries(questions)
       .map(([key, question]) => {
-        if (question.type === 'spinner') {
+        if (question.type === 'task') {
           return null;
         }
 
@@ -231,8 +231,9 @@ async function show<
           }
 
           break;
-        case 'spinner':
-        // Spinner is only used for prompts
+        case 'task':
+          // Task is not used for CLI arguments
+          break;
       }
 
       if (!error && 'validate' in q && q.validate) {
@@ -286,7 +287,7 @@ async function show<
 
     // Always run spinner tasks
     // even in non-interactive mode
-    if (q.type === 'spinner') {
+    if (q.type === 'task') {
       context[key] = await spinner(q, options);
       continue;
     }
@@ -316,6 +317,10 @@ async function show<
         case 'confirm':
           context[key] = await select(q, options);
           break;
+        default:
+          // exhaustive check
+          // eslint-disable-next-line @typescript-eslint/only-throw-error
+          throw q satisfies never;
       }
     } finally {
       stdout.write(styleText('reset', ''));
