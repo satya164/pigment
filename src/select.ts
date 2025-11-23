@@ -104,7 +104,12 @@ export async function select<
 
   let removeListeners: (() => void) | undefined;
 
-  const result = await new Promise<R>((resolve, reject) => {
+  const cleanup = () => {
+    stdout.write(ansiEscapes.cursorShow);
+    removeListeners?.();
+  };
+
+  const promise = new Promise<R>((resolve, reject) => {
     const onKeyPress = (data: Buffer) => {
       const key = data.toString();
 
@@ -201,9 +206,9 @@ export async function select<
 
           update(getText(false, true));
 
-          stdout.write(ansiEscapes.cursorShow);
           stdout.write('\n');
 
+          cleanup();
           onCancel();
 
           reject(new Error('User cancelled the prompt'));
@@ -222,7 +227,11 @@ export async function select<
     };
   });
 
-  removeListeners?.();
+  try {
+    const result = await promise;
 
-  return result;
+    return result;
+  } finally {
+    cleanup();
+  }
 }
