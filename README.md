@@ -2,6 +2,8 @@
 
 A library for creating interactive command-line applications.
 
+![Demo](./demo.svg)
+
 > [!WARNING]
 > This library is a work-in-progress and is not yet ready for production use.
 
