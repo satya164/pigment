@@ -37,7 +37,6 @@ const prompt = create(['<name>'], {
       { title: 'Coffee', value: 'coffee' },
       { title: 'Tea', value: 'tea' },
     ],
-    default: 'tea',
   },
 });
 
@@ -47,7 +46,7 @@ const answers = await prompt.show({
   description: 'A CLI tool',
 });
 
-console.log(answers);
+console.log(answers); // { name: string; age: string; drink: 'coffee' | 'tea' | undefined }
 ```
 
 ## Positional Arguments
@@ -56,7 +55,7 @@ The first parameter to `create()` allows you to define positional arguments:
 
 ```ts
 const prompt = create(['<source>', '<destination>'], {
-  // ... questions
+  /* ... */
 });
 ```
 
@@ -76,38 +75,37 @@ my-cli source.txt dest.txt
 The second parameter to `create()` is an object defining the questions:
 
 ```ts
-const prompt = create(
-  ['<name>'], // Positional arguments
-  {
-    age: {
-      type: 'text',
-      description: 'Your age',
-      message: 'How old are you?',
-      required: true,
-    },
-    drink: {
-      type: 'select',
-      description: 'Favorite drink',
-      message: 'What is your favorite drink?',
-      choices: [
-        { title: 'Coffee', value: 'coffee' },
-        { title: 'Tea', value: 'tea' },
-      ],
-      default: 'tea',
-    },
-  }
-);
+const prompt = create(['<name>'], {
+  username: {
+    type: 'text',
+    description: 'Your username',
+    message: 'What is your username?',
+    required: true,
+  },
+  drink: {
+    type: 'select',
+    description: 'Favorite drink',
+    message: 'What is your favorite drink?',
+    choices: [
+      { title: 'Coffee', value: 'coffee' },
+      { title: 'Tea', value: 'tea' },
+    ],
+    default: 'tea',
+  },
+});
 ```
 
 When in interactive mode, users will be prompted for each question. In non-interactive mode, users can provide answers via CLI flags:
 
 ```sh
-my-cli John --age 30 --drink coffee
+my-cli John --username john --drink coffee
 ```
 
 It's also possible to mix interactive and non-interactive modes by providing some answers via CLI flags and prompting for the rest.
 
-Each question can have the following configuration options:
+The key of each question in the configuration object is used as the name. The answer will be available in the results object under a property with the same name. It's also used for the CLI flags, prefixed with `--` (e.g., `--username` for the `username` question).
+
+Each question object can have the following properties:
 
 - `type`: The type of the question (e.g., `text`, `select`, `multiselect`, `confirm`).
 - `alias`: A short flag alias for the question (e.g., `-u` for `--username`).
