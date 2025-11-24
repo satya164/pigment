@@ -5,15 +5,10 @@ import { render } from './render.ts';
 import type {
   ConfirmQuestion,
   MultiSelectQuestion,
+  QuestionOptions,
   SelectChoice,
   SelectQuestion,
 } from './types.ts';
-
-export type QuestionOptions = {
-  stdin: NodeJS.ReadStream;
-  stdout: NodeJS.WriteStream;
-  onCancel: () => void;
-};
 
 export async function select<
   T extends

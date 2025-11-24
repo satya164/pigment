@@ -260,6 +260,7 @@ async function show<
     }
 
     const options = {
+      env,
       stdin,
       stdout,
       onCancel,

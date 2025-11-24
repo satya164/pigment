@@ -135,6 +135,13 @@ export type TaskQuestion<Result> = {
 
 type PromptType = 'text' | 'select' | 'multiselect' | 'confirm' | 'task';
 
+export type QuestionOptions = {
+  env: NodeJS.ProcessEnv;
+  stdin: NodeJS.ReadStream;
+  stdout: NodeJS.WriteStream;
+  onCancel: () => void;
+};
+
 type FlatType<T> = { [K in keyof T]: T[K] } & {};
 
 export type UnionToIntersection<U> = (

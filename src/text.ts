@@ -4,8 +4,7 @@ import { createInterface } from 'readline/promises';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
-import type { QuestionOptions } from './select.ts';
-import type { TextQuestion } from './types.ts';
+import type { QuestionOptions, TextQuestion } from './types.ts';
 
 export async function text(
   question: TextQuestion,

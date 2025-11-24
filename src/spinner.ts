@@ -2,8 +2,7 @@ import ansiEscapes from 'ansi-escapes';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
 import { render } from './render.ts';
-import type { QuestionOptions } from './select.ts';
-import type { TaskQuestion } from './types.ts';
+import type { QuestionOptions, TaskQuestion } from './types.ts';
 
 export async function spinner<T>(
   { message, task }: TaskQuestion<T>,
