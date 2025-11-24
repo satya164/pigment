@@ -127,6 +127,18 @@ export async function select<
 
           break;
         }
+        case 'y':
+        case 'Y':
+        case 'n':
+        case 'N': {
+          if (question.type === 'confirm') {
+            index = choices.findIndex(
+              (c) => c.value === (key.toLowerCase() === 'y')
+            );
+            update(getText(false));
+          }
+          break;
+        }
         case KEYCODES.A: {
           if (type === 'multiselect') {
             validation = true;
