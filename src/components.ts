@@ -47,12 +47,13 @@ export function confirm({
   return `${question({ message, status })}\n  ${choices
     .map((choice, i) => {
       const selected = i === index;
+      const title = choice.title ?? String(choice.value);
 
       if (selected) {
-        return styleText(theme.selected, String(choice.title ?? choice.value));
+        return styleText(theme.selected, `● ${title}`);
       }
 
-      return choice.title;
+      return `○ ${title}`;
     })
     .join(styleText(theme.separator, ' / '))}`;
 }
