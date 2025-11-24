@@ -2,16 +2,23 @@
 
 A library for creating interactive command-line applications.
 
-![Demo](./demo.svg)
-
 > [!WARNING]
 > This library is a work-in-progress and is not yet ready for production use.
+
+![Demo](./demo.svg)
 
 ## Features
 
 - Works in both interactive and non-interactive modes with a single configuration
 - Fully typed with TypeScript, with automatic type inference for prompt results
 - Support for text, select, multiselect, confirm, and async tasks
+- Built-in support for flags such as `--help`, `--version` and `--interactive`
+
+## Why?
+
+This library aims to simplify writing command line tools that can be used interactively by prompting users for input, as well as non-interactively by providing answers via CLI arguments.
+
+Combining different tools for prompting and argument parsing leads to duplicated logic, and subtle differences which makes it hard to maintain. So the idea is to have a single API to support both use cases. The library reads CLI arguments and skips prompts for any valid answers provided via arguments, and prompts for the rest if in interactive mode. Interactive mode can also be explicitly disabled by passing the `--no-interactive` flag.
 
 ## Installation
 
@@ -48,7 +55,7 @@ const answers = await prompt.show({
   description: 'A CLI tool',
 });
 
-console.log(answers); // { name: string; age: string; drink: 'coffee' | 'tea' | undefined }
+console.log(answers); // { name: string; age: string; drink: 'coffee' | 'tea' | undefined } | undefined
 ```
 
 ## Positional Arguments
@@ -311,7 +318,7 @@ It takes an async generator function which can yield a message to update the spi
 After creating the prompt with `create()`, you can show it using the `show()` method.
 
 ```ts
-prompt.show({
+const result = await prompt.show({
   name: 'my-cli',
   description: 'A CLI tool',
   version: '1.0.0',
@@ -327,8 +334,9 @@ It takes an options object with the following properties:
 - `env`: An object representing the environment variables to read variables such as `CI`, `TERM`, etc. Defaults to `process.env`.
 - `stdin`: The readable stream to use for input. Defaults to `process.stdin`.
 - `stdout`: The writable stream to use for output. Defaults to `process.stdout`.
-- `onExit`: A callback function that is called when the prompt exits. Defaults to `process.exit`.
-- `onCancel`: A callback function that is called when the prompt is cancelled (e.g., via <kbd>Ctrl+C</kbd>).
+- `onCancel`: A callback function that is called when the prompt is cancelled (e.g., via <kbd>Ctrl+C</kbd>). Defaults to `() => process.exit(0)`.
+
+The result is a promise that resolves to an object containing the answers, or `undefined` if the prompt was not shown (e.g. when `--help` or `--version` is passed).
 
 ## License
 

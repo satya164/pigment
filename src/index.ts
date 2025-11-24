@@ -55,10 +55,9 @@ async function show<
     env = process.env,
     stdin = process.stdin,
     stdout = process.stdout,
-    onExit = () => process.exit(0),
     onCancel = () => process.exit(0),
   }: PromptOptions
-): Promise<AnswerList<P, Q>> {
+): Promise<AnswerList<P, Q> | undefined> {
   if (args.length === 1) {
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     switch (args[0]) {
@@ -67,7 +66,7 @@ async function show<
         if (version != null) {
           stdout.write(`${version}\n`);
 
-          onExit();
+          return;
         }
 
         break;
@@ -83,7 +82,7 @@ async function show<
           stdout,
         });
 
-        onExit();
+        return;
       }
     }
   }

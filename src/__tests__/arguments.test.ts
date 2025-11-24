@@ -39,7 +39,7 @@ void describe('positional arguments', () => {
       stdout,
     });
 
-    assert.strictEqual(result.name, 'Alice');
+    assert.strictEqual(result?.name, 'Alice');
   });
 
   void test('parses optional positional argument when provided', async () => {
@@ -53,7 +53,7 @@ void describe('positional arguments', () => {
       stdout,
     });
 
-    assert.strictEqual(result.directory, 'src');
+    assert.strictEqual(result?.directory, 'src');
   });
 
   void test('handles missing optional positional argument', async () => {
@@ -67,7 +67,7 @@ void describe('positional arguments', () => {
       stdout,
     });
 
-    assert.strictEqual(result.directory, undefined);
+    assert.strictEqual(result?.directory, undefined);
   });
 
   void test('parses multiple positional arguments', async () => {
@@ -81,7 +81,7 @@ void describe('positional arguments', () => {
       stdout,
     });
 
-    assert.strictEqual(result.name, 'Alice');
+    assert.strictEqual(result?.name, 'Alice');
     assert.strictEqual(result.email, 'alice@example.com');
     assert.strictEqual(result.role, 'admin');
     assert.strictEqual(result.age, undefined);
@@ -107,7 +107,7 @@ void describe('text questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.username, 'Alice');
+    assert.strictEqual(result?.username, 'Alice');
   });
 
   void test('parses text argument with short flag', async () => {
@@ -129,7 +129,7 @@ void describe('text questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.username, 'Bob');
+    assert.strictEqual(result?.username, 'Bob');
   });
 
   void test('validates text argument', async () => {
@@ -237,7 +237,7 @@ void describe('select questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.drink, 'coffee');
+    assert.strictEqual(result?.drink, 'coffee');
   });
 
   void test('rejects invalid select value', async () => {
@@ -292,7 +292,7 @@ void describe('select questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.drink, 'coffee');
+    assert.strictEqual(result?.drink, 'coffee');
 
     await assert.rejects(
       async () =>
@@ -363,7 +363,7 @@ void describe('multiselect questions', () => {
       stdout,
     });
 
-    assert.deepStrictEqual(result.fruits, ['apple']);
+    assert.deepStrictEqual(result?.fruits, ['apple']);
   });
 
   void test('parses multiselect argument with multiple values', async () => {
@@ -389,7 +389,7 @@ void describe('multiselect questions', () => {
       stdout,
     });
 
-    assert.deepStrictEqual(result.fruits, ['apple', 'banana']);
+    assert.deepStrictEqual(result?.fruits, ['apple', 'banana']);
   });
 
   void test('parses empty multiselect argument', async () => {
@@ -414,7 +414,7 @@ void describe('multiselect questions', () => {
       stdout,
     });
 
-    assert.deepStrictEqual(result.fruits, []);
+    assert.deepStrictEqual(result?.fruits, []);
   });
 
   void test('rejects invalid multiselect value', async () => {
@@ -470,7 +470,7 @@ void describe('multiselect questions', () => {
       stdout,
     });
 
-    assert.deepStrictEqual(result.fruits, ['apple', 'banana']);
+    assert.deepStrictEqual(result?.fruits, ['apple', 'banana']);
 
     await assert.rejects(
       async () =>
@@ -539,7 +539,7 @@ void describe('confirm questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.adult, true);
+    assert.strictEqual(result?.adult, true);
   });
 
   void test('parses confirm argument as false with --no prefix', async () => {
@@ -559,7 +559,7 @@ void describe('confirm questions', () => {
       stdout,
     });
 
-    assert.strictEqual(result.adult, false);
+    assert.strictEqual(result?.adult, false);
   });
 
   void test('validates confirm argument', async () => {
@@ -645,7 +645,7 @@ void describe('mixed arguments', () => {
       stdout,
     });
 
-    assert.strictEqual(result.name, 'Alice');
+    assert.strictEqual(result?.name, 'Alice');
     assert.strictEqual(result.directory, 'src');
     assert.strictEqual(result.username, 'alice123');
     assert.strictEqual(result.drink, 'coffee');
@@ -674,7 +674,7 @@ void describe('miscellaneous', () => {
       stdout,
     });
 
-    assert.strictEqual(result.username, 'default-user');
+    assert.strictEqual(result?.username, 'default-user');
   });
 
   void test('handles async skip function', async () => {
@@ -700,7 +700,7 @@ void describe('miscellaneous', () => {
       stdout,
     });
 
-    assert.strictEqual(result.sugar, false);
+    assert.strictEqual(result?.sugar, false);
   });
 
   void test('runs spinner tasks in non-interactive mode', async () => {
@@ -730,7 +730,7 @@ void describe('miscellaneous', () => {
       stdout,
     });
 
-    assert.strictEqual(result.data, 'result');
+    assert.strictEqual(result?.data, 'result');
   });
 
   void test('throws error for extraneous arguments  ', async () => {
@@ -808,7 +808,7 @@ void describe('miscellaneous', () => {
       stdout,
     });
 
-    assert.strictEqual(result.username, 'Alice');
+    assert.strictEqual(result?.username, 'Alice');
   });
 
   void test('throws error for required question even when default is provided', async () => {

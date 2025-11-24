@@ -5,7 +5,7 @@ export type Prompt<
   /**
    * Show the prompt and wait for the user to answer.
    */
-  show: (options: PromptOptions) => Promise<AnswerList<P, Q>>;
+  show: (options: PromptOptions) => Promise<AnswerList<P, Q> | undefined>;
   /**
    * Read the current answers from the prompt.
    */
@@ -22,7 +22,6 @@ export type PromptOptions = {
   env?: NodeJS.ProcessEnv;
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
-  onExit?: () => void;
   onCancel?: () => void;
 };
 

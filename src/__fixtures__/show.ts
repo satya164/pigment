@@ -14,21 +14,22 @@ const result = await prompt.show({
 console.log(result);
 
 expectTypeOf(result).toEqualTypeOf<
-  Readonly<{
-    name: string;
-    directory?: string;
-    username: string;
-    pokemon: {
+  | Readonly<{
       name: string;
-      types: string[];
-      abilities: string[];
-    };
-    planet: 'earth';
-    adult: boolean;
-    drink: 'coffee' | 'tea';
-    sugar: boolean | undefined;
-    animal: ['otter'] | 'otter'[];
-    fruits: ('apple' | 'avocado' | 'banana' | 'orange')[] | undefined;
-    feeling: string | undefined;
-  }>
+      directory?: string;
+      username: string;
+      pokemon: {
+        name: string;
+        types: string[];
+        abilities: string[];
+      };
+      planet: 'earth';
+      adult: boolean;
+      drink: 'coffee' | 'tea';
+      sugar: boolean | undefined;
+      animal: ['otter'] | 'otter'[];
+      fruits: ('apple' | 'avocado' | 'banana' | 'orange')[] | undefined;
+      feeling: string | undefined;
+    }>
+  | undefined
 >();
