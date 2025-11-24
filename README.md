@@ -275,7 +275,7 @@ my-cli --no-adult
 
 #### Task
 
-Asynchronous task that show a loading spinner. This is shown in both interactive and non-interactive modes.
+Asynchronous task that performs an action. This is shown in both interactive and non-interactive modes.
 
 It takes an async generator function which can yield a message to update the spinner text during execution.
 

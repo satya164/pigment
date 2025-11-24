@@ -6,9 +6,29 @@ import type { QuestionOptions, TaskQuestion } from './types.ts';
 
 export async function spinner<T>(
   { message, task }: TaskQuestion<T>,
-  { stdin, stdout, onCancel }: QuestionOptions
+  { env, stdin, stdout, onCancel }: QuestionOptions
 ): Promise<unknown> {
-  stdout.write(ansiEscapes.cursorHide);
+  if (env.TERM === 'dumb' || !stdout.isTTY) {
+    stdout.write(`${message}\n`);
+
+    const generator = task();
+
+    while (true) {
+      const { done, value } = await generator.next();
+
+      if (done === true) {
+        if (value.message != null) {
+          stdout.write(`${value.message}\n`);
+        }
+
+        return value.value;
+      }
+
+      if (value.message != null) {
+        stdout.write(`${value.message}\n`);
+      }
+    }
+  }
 
   const props: Parameters<typeof components.spinner>[0] = {
     counter: 0,
@@ -17,6 +37,8 @@ export async function spinner<T>(
   };
 
   let result;
+
+  stdout.write(ansiEscapes.cursorHide);
 
   const { update } = render(components.spinner(props), stdout);
 
