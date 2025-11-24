@@ -199,6 +199,7 @@ Single-choice selection from a list of options.
 The `choices` array contains objects with the following properties:
 
 - `title`: The display text for the option.
+- `description`: (Optional) Additional description for the option.
 - `value`: The value associated with the option that's used for the answer.
 - `skip`: A boolean or function that returns a boolean or a promise containing boolean to conditionally hide the choice:
 
@@ -230,6 +231,7 @@ Multiple-choice selection from a list of options.
 The `choices` array contains objects with the following properties:
 
 - `title`: The display text for the option.
+- `description`: An optional description for the option.
 - `value`: The value associated with the option that's used for the answer.
 - `skip`: A boolean or function that returns a boolean or a promise containing boolean to conditionally hide the choice:
 
