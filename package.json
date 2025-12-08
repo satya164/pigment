@@ -26,10 +26,10 @@
     "src"
   ],
   "scripts": {
-    "test": "node --test --experimental-strip-types  src/__tests__/*.test.ts",
     "prepare": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "test": "node --test --test-reporter=@voxpelli/node-test-pretty-reporter src/**/*.test.ts",
     "release": "release-it --only-version"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
     "@commitlint/config-conventional": "^20.0.0",
     "@release-it/conventional-changelog": "^10.0.1",
     "@types/node": "^24.10.1",
+    "@voxpelli/node-test-pretty-reporter": "^1.1.2",
     "commitlint": "^20.1.0",
     "eslint": "^9.39.1",
     "eslint-config-satya164": "^5.1.5",
