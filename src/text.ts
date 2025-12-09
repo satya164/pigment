@@ -184,7 +184,7 @@ export async function text(
     const promise = rl.question(prompt);
 
     // If there was a validation error, keep the previous answer
-    if (validation !== true && answer != null) {
+    if (validation !== true && answer != null && initialAnswer == null) {
       rl.write(answer);
     }
 
