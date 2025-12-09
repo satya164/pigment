@@ -2,7 +2,6 @@ import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, test } from 'node:test';
 import { create } from '../index.ts';
-import { PromptError } from '../prompt-error.ts';
 
 function createMockStreams() {
   return {
@@ -10,6 +9,8 @@ function createMockStreams() {
     stdin: new PassThrough() as unknown as NodeJS.ReadStream,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     stdout: new PassThrough() as unknown as NodeJS.WriteStream,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    stderr: new PassThrough() as unknown as NodeJS.WriteStream,
   };
 }
 
@@ -143,25 +144,27 @@ void describe('text questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--username', 'ab'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--username'"
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--username', 'ab'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Invalid value for option '--username'/);
   });
 
   void test('validates text argument with custom message', async () => {
@@ -175,24 +178,29 @@ void describe('text questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--username', 'ab'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--username'. Username must be at least 3 characters"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--username', 'ab'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--username'. Username must be at least 3 characters/
     );
   });
 
@@ -205,25 +213,27 @@ void describe('text questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--username'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Option '--username <value>' argument missing"
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--username'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Option '--username <value>' argument missing/);
   });
 });
 
@@ -266,24 +276,29 @@ void describe('select questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--drink', 'soda'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--drink'. Expected one of 'coffee', 'tea', got 'soda'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--drink', 'soda'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--drink'. Expected one of 'coffee', 'tea', got 'soda'/
     );
   });
 
@@ -299,7 +314,7 @@ void describe('select questions', () => {
         ],
       },
     });
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
     const result = await prompt.show({
       name: 'test',
@@ -310,22 +325,27 @@ void describe('select questions', () => {
 
     assert.strictEqual(result?.drink, 'coffee');
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--drink', 'tea'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--drink'. Expected one of 'coffee', got 'tea'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--drink', 'tea'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--drink'. Expected one of 'coffee', got 'tea'/
     );
   });
 
@@ -343,22 +363,27 @@ void describe('select questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--drink', 'tea'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(error.message, "Invalid value for option '--drink'");
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--drink', 'tea'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Invalid value for option '--drink'/);
   });
 });
 
@@ -451,24 +476,29 @@ void describe('multiselect questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--fruits', 'apple', '--fruits', 'grape'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'apple, grape'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--fruits', 'apple', '--fruits', 'grape'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'apple, grape'/
     );
   });
 
@@ -485,7 +515,7 @@ void describe('multiselect questions', () => {
         ],
       },
     });
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
     const result = await prompt.show({
       name: 'test',
@@ -496,22 +526,27 @@ void describe('multiselect questions', () => {
 
     assert.deepStrictEqual(result?.fruits, ['apple', 'banana']);
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--fruits', 'banana', '--fruits', 'cherry'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'banana, cherry'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--fruits', 'banana', '--fruits', 'cherry'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'banana, cherry'/
     );
   });
 
@@ -530,24 +565,29 @@ void describe('multiselect questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--fruits='],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--fruits'. Select at least one fruit"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--fruits='],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--fruits'. Select at least one fruit/
     );
   });
 });
@@ -604,22 +644,27 @@ void describe('confirm questions', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--no-agree'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(error.message, "Invalid value for option '--agree'");
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--no-agree'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Invalid value for option '--agree'/);
   });
 });
 
@@ -817,25 +862,27 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--username', 'Alice', '--extra', 'value'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Unknown option '--extra'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"--extra\""
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--username', 'Alice', '--extra', 'value'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Unknown option.*--extra/);
   });
 
   void test('throws error for missing required question in non-interactive mode', async () => {
@@ -848,24 +895,29 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: [],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Missing required option '--username'. Provide a value using --username"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: [],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Missing required option '--username'. Provide a value using --username/
     );
   });
 
@@ -902,24 +954,29 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: [],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Missing required option '--username'. Provide a value using --username"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: [],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Missing required option '--username'. Provide a value using --username/
     );
   });
 
@@ -933,24 +990,29 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--username='],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--username'. Got empty string"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--username='],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--username'. Got empty string/
     );
   });
 
@@ -963,25 +1025,27 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--name'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Option '--name <value>' argument missing"
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--name'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Option '--name <value>' argument missing/);
   });
 
   void test('throws error for invalid select choice value', async () => {
@@ -997,24 +1061,29 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--color', 'green'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--color'. Expected one of 'red', 'blue', got 'green'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--color', 'green'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--color'. Expected one of 'red', 'blue', got 'green'/
     );
   });
 
@@ -1031,24 +1100,29 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--tags', 'js', '--tags', 'python'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Invalid value for option '--tags'. Expected one of 'js', 'ts', got 'js, python'"
-        );
-        return true;
-      }
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--tags', 'js', '--tags', 'python'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Invalid value for option '--tags'. Expected one of 'js', 'ts', got 'js, python'/
     );
   });
 
@@ -1065,25 +1139,27 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['--tags'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Option '--tags <value>' argument missing"
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--tags'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Option '--tags <value>' argument missing/);
   });
 
   void test('throws error for unknown short flag', async () => {
@@ -1095,24 +1171,26 @@ void describe('miscellaneous', () => {
       },
     });
 
-    const { stdin, stdout } = createMockStreams();
+    const { stdin, stdout, stderr } = createMockStreams();
 
-    await assert.rejects(
-      async () =>
-        prompt.show({
-          name: 'test',
-          args: ['-x'],
-          stdin,
-          stdout,
-        }),
-      (error: Error) => {
-        assert.ok(error instanceof PromptError);
-        assert.strictEqual(
-          error.message,
-          "Unknown option '-x'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"-x\""
-        );
-        return true;
-      }
-    );
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['-x'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Unknown option '-x'/);
   });
 });

@@ -1,4 +1,5 @@
 import { parseArgs, styleText } from 'node:util';
+import { theme } from './components.ts';
 import { PromptError } from './prompt-error.ts';
 import { select } from './select.ts';
 import { spinner } from './spinner.ts';
@@ -36,7 +37,27 @@ export function create<
   const context: Partial<AnswerList<P, Q>> = {};
 
   return {
-    show: async (options) => show(positionals, questions, context, options),
+    show: async (options) => {
+      try {
+        return await show(positionals, questions, context, options);
+      } catch (error) {
+        if (error instanceof PromptError) {
+          const stderr = options.stderr ?? process.stderr;
+
+          stderr.write(styleText(theme.error, `Error: ${error.message}\n`));
+
+          if (options.onExit) {
+            options.onExit(1);
+          } else {
+            process.exit(1);
+          }
+
+          return undefined;
+        }
+
+        throw error;
+      }
+    },
     read: () => context,
   };
 }
@@ -56,7 +77,7 @@ async function show<
     env = process.env,
     stdin = process.stdin,
     stdout = process.stdout,
-    onCancel = () => process.exit(0),
+    onExit = (code) => process.exit(code),
   }: PromptOptions
 ): Promise<AnswerList<P, Q> | undefined> {
   if (args.length === 1) {
@@ -291,7 +312,9 @@ async function show<
       env,
       stdin,
       stdout,
-      onCancel,
+      onCancel: () => {
+        onExit(0);
+      },
     };
 
     const skip =

@@ -4,8 +4,4 @@ export class PromptError extends Error {
     this.name = 'PromptError';
     Object.setPrototypeOf(this, new.target.prototype);
   }
-
-  static isPromptError(error: unknown): error is PromptError {
-    return error instanceof PromptError;
-  }
 }

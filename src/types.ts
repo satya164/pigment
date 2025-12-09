@@ -22,7 +22,8 @@ export type PromptOptions = {
   env?: NodeJS.ProcessEnv;
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
-  onCancel?: () => void;
+  stderr?: NodeJS.WriteStream;
+  onExit?: (code: number) => void;
 };
 
 export type QuestionList<Name extends string> = {

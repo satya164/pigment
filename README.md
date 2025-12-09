@@ -334,7 +334,7 @@ It takes an options object with the following properties:
 - `env`: An object representing the environment variables to read variables such as `CI`, `TERM`, etc. Defaults to `process.env`.
 - `stdin`: The readable stream to use for input. Defaults to `process.stdin`.
 - `stdout`: The writable stream to use for output. Defaults to `process.stdout`.
-- `onCancel`: A callback function that is called when the prompt is cancelled (e.g., via <kbd>Ctrl+C</kbd>). Defaults to `() => process.exit(0)`.
+- `onExit`: A callback function that is called when the prompt is exited (e.g., cancelled via <kbd>Ctrl+C</kbd>, or errored due to invalid arguments). Defaults to `(code) => process.exit(code)`.
 
 The result is a promise that resolves to an object containing the answers, or `undefined` if the prompt was not shown (e.g. when `--help` or `--version` is passed).
 

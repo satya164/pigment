@@ -5,9 +5,12 @@ const result = await prompt.show({
   name: 'pigment-demo',
   description: 'A demo of pigment CLI prompt',
   version: '0.42.0',
-  onCancel: () => {
-    process.stdout.write('Prompt cancelled\n');
-    process.exit(0);
+  onExit: (code) => {
+    if (code === 0) {
+      process.stdout.write('Prompt cancelled\n');
+    }
+
+    process.exit(code);
   },
 });
 
