@@ -8,8 +8,10 @@ import { render } from './render.ts';
 import type { QuestionOptions, TextQuestion } from './types.ts';
 
 export async function text(
-  question: TextQuestion,
-  error: PromptError | undefined,
+  question: TextQuestion & {
+    prefill: string | undefined;
+    error: PromptError | undefined;
+  },
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
   const rl = createInterface({
@@ -54,14 +56,17 @@ export async function text(
   const { update } = render(before, stdout);
 
   const defaultValue =
-    typeof question.default === 'function'
+    question.prefill ??
+    (typeof question.default === 'function'
       ? await question.default()
-      : question.default;
+      : question.default);
 
   let initialAnswer = defaultValue;
   let answer = initialAnswer;
   let validation: string | boolean =
-    typeof error?.validation === 'string' ? error.validation : error == null;
+    typeof question.error?.validation === 'string'
+      ? question.error.validation
+      : question.error == null;
 
   const updateFooter = () => {
     // Prefill the input with the default answer if it exists

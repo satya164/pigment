@@ -220,14 +220,13 @@ async function show<
       q = { ...q, choices };
     }
 
-    let error;
+    let error, value: unknown;
 
     const kebabKey = camelToKebabCase(key);
 
     if (kebabKey in parsed) {
-      let value: unknown =
-        // @ts-expect-error: parsed doesn't have correct types
-        parsed[kebabKey];
+      // @ts-expect-error: parsed doesn't have correct types
+      value = parsed[kebabKey];
 
       switch (q.type) {
         case 'text':
@@ -362,7 +361,14 @@ async function show<
     try {
       switch (q.type) {
         case 'text':
-          context[key] = await text(q, error, options);
+          context[key] = await text(
+            {
+              ...q,
+              prefill: typeof value === 'string' ? value : undefined,
+              error: error,
+            },
+            options
+          );
           break;
         case 'select':
         case 'multiselect':
