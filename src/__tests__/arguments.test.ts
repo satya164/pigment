@@ -20,9 +20,9 @@ void describe('positional arguments', () => {
         create(['[optional]', '<required>'], {});
       },
       (error: Error) => {
-        assert.match(
+        assert.strictEqual(
           error.message,
-          /required argument '<required>' cannot appear after optional arguments/
+          "Required argument '<required>' cannot appear after optional arguments"
         );
         return true;
       }
@@ -155,7 +155,10 @@ void describe('text questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'username'/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--username'"
+        );
         return true;
       }
     );
@@ -184,7 +187,10 @@ void describe('text questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Username must be at least 3 characters/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--username'. Username must be at least 3 characters"
+        );
         return true;
       }
     );
@@ -211,7 +217,10 @@ void describe('text questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /argument missing/);
+        assert.strictEqual(
+          error.message,
+          "Option '--username <value>' argument missing"
+        );
         return true;
       }
     );
@@ -269,8 +278,10 @@ void describe('select questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'drink'/);
-        assert.match(error.message, /'coffee', 'tea'/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--drink'. Expected one of 'coffee', 'tea', got 'soda'"
+        );
         return true;
       }
     );
@@ -309,7 +320,10 @@ void describe('select questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'drink'/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--drink'. Expected one of 'coffee', got 'tea'"
+        );
         return true;
       }
     );
@@ -341,7 +355,7 @@ void describe('select questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'drink'/);
+        assert.strictEqual(error.message, "Invalid value for option '--drink'");
         return true;
       }
     );
@@ -449,8 +463,10 @@ void describe('multiselect questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'fruits'/);
-        assert.match(error.message, /'apple', 'banana'/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'apple, grape'"
+        );
         return true;
       }
     );
@@ -490,7 +506,10 @@ void describe('multiselect questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'fruits'/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--fruits'. Expected one of 'apple', 'banana', got 'banana, cherry'"
+        );
         return true;
       }
     );
@@ -523,7 +542,10 @@ void describe('multiselect questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Select at least one fruit/);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--fruits'. Select at least one fruit"
+        );
         return true;
       }
     );
@@ -594,7 +616,7 @@ void describe('confirm questions', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Invalid value for 'agree'/);
+        assert.strictEqual(error.message, "Invalid value for option '--agree'");
         return true;
       }
     );
@@ -807,7 +829,10 @@ void describe('miscellaneous', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(error.message, /Unknown option '--extra'/);
+        assert.strictEqual(
+          error.message,
+          "Unknown option '--extra'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"--extra\""
+        );
         return true;
       }
     );
@@ -835,9 +860,9 @@ void describe('miscellaneous', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(
+        assert.strictEqual(
           error.message,
-          /Missing required value for 'username'. Please provide a value using --username./
+          "Missing required option '--username'. Provide a value using --username"
         );
         return true;
       }
@@ -889,9 +914,9 @@ void describe('miscellaneous', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(
+        assert.strictEqual(
           error.message,
-          /Missing required value for 'username'. Please provide a value using --username./
+          "Missing required option '--username'. Provide a value using --username"
         );
         return true;
       }
@@ -920,9 +945,171 @@ void describe('miscellaneous', () => {
         }),
       (error: Error) => {
         assert.ok(error instanceof PromptError);
-        assert.match(
+        assert.strictEqual(
           error.message,
-          /Invalid value for 'username'. It cannot be empty./
+          "Invalid value for option '--username'. Got empty string"
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('throws error for missing value after flag', async () => {
+    const prompt = create([], {
+      name: {
+        type: 'text',
+        description: 'Name',
+        message: 'Enter name',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['--name'],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.ok(error instanceof PromptError);
+        assert.strictEqual(
+          error.message,
+          "Option '--name <value>' argument missing"
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('throws error for invalid select choice value', async () => {
+    const prompt = create([], {
+      color: {
+        type: 'select',
+        description: 'Favorite color',
+        message: 'Choose color',
+        choices: [
+          { title: 'Red', value: 'red' },
+          { title: 'Blue', value: 'blue' },
+        ],
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['--color', 'green'],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.ok(error instanceof PromptError);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--color'. Expected one of 'red', 'blue', got 'green'"
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('throws error for invalid multiselect choice value', async () => {
+    const prompt = create([], {
+      tags: {
+        type: 'multiselect',
+        description: 'Tags',
+        message: 'Select tags',
+        choices: [
+          { title: 'JavaScript', value: 'js' },
+          { title: 'TypeScript', value: 'ts' },
+        ],
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['--tags', 'js', '--tags', 'python'],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.ok(error instanceof PromptError);
+        assert.strictEqual(
+          error.message,
+          "Invalid value for option '--tags'. Expected one of 'js', 'ts', got 'js, python'"
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('throws error for non-array value in multiselect', async () => {
+    const prompt = create([], {
+      tags: {
+        type: 'multiselect',
+        description: 'Tags',
+        message: 'Select tags',
+        choices: [
+          { title: 'JavaScript', value: 'js' },
+          { title: 'TypeScript', value: 'ts' },
+        ],
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['--tags'],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.ok(error instanceof PromptError);
+        assert.strictEqual(
+          error.message,
+          "Option '--tags <value>' argument missing"
+        );
+        return true;
+      }
+    );
+  });
+
+  void test('throws error for unknown short flag', async () => {
+    const prompt = create([], {
+      name: {
+        type: 'text',
+        description: 'Name',
+        message: 'Enter name',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    await assert.rejects(
+      async () =>
+        prompt.show({
+          name: 'test',
+          args: ['-x'],
+          stdin,
+          stdout,
+        }),
+      (error: Error) => {
+        assert.ok(error instanceof PromptError);
+        assert.strictEqual(
+          error.message,
+          "Unknown option '-x'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"-x\""
         );
         return true;
       }

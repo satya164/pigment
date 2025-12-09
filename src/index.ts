@@ -24,7 +24,7 @@ export function create<
 
     if (foundOptional && !isOptional) {
       throw new Error(
-        `Invalid positional arguments: required argument '${positional}' cannot appear after optional arguments (got '${positionals.join(' ')}').`
+        `Required argument '${positional}' cannot appear after optional arguments`
       );
     }
 
@@ -212,11 +212,11 @@ async function show<
         case 'text':
           if (typeof value !== 'string') {
             error = new PromptError(
-              `Invalid value for '${key}'. Expected string.`
+              `Invalid value for option '--${kebabKey}'. Expected string, got ${typeof value}`
             );
           } else if ('required' in q && q.required === true && value === '') {
             error = new PromptError(
-              `Invalid value for '${key}'. It cannot be empty.`
+              `Invalid value for option '--${kebabKey}'. Got empty string`
             );
           }
 
@@ -224,7 +224,7 @@ async function show<
         case 'select':
           if (q.choices.every((c) => c.value !== value)) {
             error = new PromptError(
-              `Invalid value for '${key}'. Expected one of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
+              `Invalid value for option '--${kebabKey}'. Expected one of ${q.choices.map((c) => `'${c.value}'`).join(', ')}, got '${String(value)}'`
             );
           }
 
@@ -242,7 +242,7 @@ async function show<
               result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
               error = new PromptError(
-                `Invalid value for '${key}'. Expected any of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
+                `Invalid value for option '--${kebabKey}'. Expected one of ${q.choices.map((c) => `'${c.value}'`).join(', ')}, got '${result?.join(', ') ?? typeof result}'`
               );
             }
 
@@ -253,7 +253,7 @@ async function show<
         case 'confirm':
           if (typeof value !== 'boolean') {
             error = new PromptError(
-              `Invalid value for '${key}'. Expected boolean.`
+              `Invalid value for option '--${kebabKey}'. Expected boolean, got ${typeof value}`
             );
           }
 
@@ -268,9 +268,11 @@ async function show<
         const validation = q.validate(value);
 
         if (typeof validation === 'string') {
-          error = new PromptError(`Invalid value for '${key}'. ${validation}`);
+          error = new PromptError(
+            `Invalid value for option '--${kebabKey}'. ${validation}`
+          );
         } else if (!validation) {
-          error = new PromptError(`Invalid value for '${key}'.`);
+          error = new PromptError(`Invalid value for option '--${kebabKey}'`);
         }
       }
 
@@ -321,7 +323,7 @@ async function show<
       // Check if required field is missing in non-interactive mode
       if ('required' in q && q.required === true && !(key in context)) {
         throw new PromptError(
-          `Missing required value for '${key}'. Please provide a value using --${key}.`
+          `Missing required option '--${kebabKey}'. Provide a value using --${kebabKey}`
         );
       }
 
