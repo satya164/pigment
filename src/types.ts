@@ -69,7 +69,10 @@ type PositionalArgumentValue<T extends PositionalArgument[]> =
     }[T[number]]
   >;
 
-type DefaultValue<Value> = Value | (() => Value | Promise<Value>);
+type DefaultValue<Value> =
+  | Value
+  | undefined
+  | (() => Value | undefined | Promise<Value | undefined>);
 
 type Answer<T extends Question | null> =
   T extends TaskQuestion<unknown>
