@@ -9,7 +9,7 @@ import type {
   PromptOptions,
   QuestionList,
 } from './types.ts';
-import { usage } from './usage.ts';
+import { camelToKebabCase, usage } from './usage.ts';
 
 export function create<
   const P extends PositionalArgument[],
@@ -110,7 +110,7 @@ async function show<
         }
 
         return [
-          key,
+          camelToKebabCase(key),
           'alias' in question && question.alias != null
             ? {
                 type,
@@ -178,10 +178,12 @@ async function show<
       q = { ...q, choices };
     }
 
-    if (key in parsed) {
+    const kebabKey = camelToKebabCase(key);
+
+    if (kebabKey in parsed) {
       let value: unknown =
         // @ts-expect-error: parsed doesn't have correct types
-        parsed[key];
+        parsed[kebabKey];
 
       let error;
 

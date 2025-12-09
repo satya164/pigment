@@ -655,6 +655,48 @@ void describe('mixed arguments', () => {
 });
 
 void describe('miscellaneous', () => {
+  void test('handles kebab-case arguments', async () => {
+    const prompt = create([], {
+      'user-name': {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--user-name', 'Alice'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.['user-name'], 'Alice');
+  });
+
+  void test('handles camelCase arguments', async () => {
+    const prompt = create([], {
+      userName: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--user-name', 'Alice'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.userName, 'Alice');
+  });
+
   void test('uses default value for skipped question when not provided via args', async () => {
     const prompt = create([], {
       username: {
