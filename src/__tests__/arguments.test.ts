@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, test } from 'node:test';
 import { create } from '../index.ts';
+import { PromptError } from '../prompt-error.ts';
 
 function createMockStreams() {
   return {
@@ -153,6 +154,7 @@ void describe('text questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'username'/);
         return true;
       }
@@ -181,6 +183,7 @@ void describe('text questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Username must be at least 3 characters/);
         return true;
       }
@@ -207,6 +210,7 @@ void describe('text questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /argument missing/);
         return true;
       }
@@ -264,6 +268,7 @@ void describe('select questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'drink'/);
         assert.match(error.message, /'coffee', 'tea'/);
         return true;
@@ -303,6 +308,7 @@ void describe('select questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'drink'/);
         return true;
       }
@@ -334,6 +340,7 @@ void describe('select questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'drink'/);
         return true;
       }
@@ -441,6 +448,7 @@ void describe('multiselect questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'fruits'/);
         assert.match(error.message, /'apple', 'banana'/);
         return true;
@@ -481,6 +489,7 @@ void describe('multiselect questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'fruits'/);
         return true;
       }
@@ -513,6 +522,7 @@ void describe('multiselect questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Select at least one fruit/);
         return true;
       }
@@ -583,6 +593,7 @@ void describe('confirm questions', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Invalid value for 'agree'/);
         return true;
       }
@@ -795,6 +806,7 @@ void describe('miscellaneous', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(error.message, /Unknown option '--extra'/);
         return true;
       }
@@ -822,6 +834,7 @@ void describe('miscellaneous', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(
           error.message,
           /Missing required value for 'username'. Please provide a value using --username./
@@ -875,6 +888,7 @@ void describe('miscellaneous', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(
           error.message,
           /Missing required value for 'username'. Please provide a value using --username./
@@ -905,6 +919,7 @@ void describe('miscellaneous', () => {
           stdout,
         }),
       (error: Error) => {
+        assert.ok(error instanceof PromptError);
         assert.match(
           error.message,
           /Invalid value for 'username'. It cannot be empty./

@@ -3,6 +3,7 @@ import { stripVTControlCharacters, styleText } from 'node:util';
 import { createInterface } from 'readline/promises';
 import * as components from './components.ts';
 import { KEYCODES } from './constants.ts';
+import { PromptError } from './prompt-error.ts';
 import { render } from './render.ts';
 import type { QuestionOptions, TextQuestion } from './types.ts';
 
@@ -37,7 +38,7 @@ export async function text(
   });
 
   if (text.includes('<input>') && !text.includes('<input>\n')) {
-    throw new Error(
+    throw new PromptError(
       `Input placeholder '<input>' must be followed by a newline.`
     );
   }

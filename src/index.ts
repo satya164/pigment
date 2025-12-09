@@ -1,4 +1,5 @@
 import { parseArgs, styleText } from 'node:util';
+import { PromptError } from './prompt-error.ts';
 import { select } from './select.ts';
 import { spinner } from './spinner.ts';
 import { text } from './text.ts';
@@ -126,6 +127,35 @@ async function show<
       .filter((entry) => entry != null)
   );
 
+  let parseArgsResult;
+
+  try {
+    parseArgsResult = parseArgs({
+      args,
+      strict: true,
+      allowPositionals: true,
+      allowNegative: true,
+      options: {
+        interactive: { type: 'boolean' },
+        ...options,
+      },
+    });
+  } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      'message' in error &&
+      typeof error.message === 'string' &&
+      (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE' ||
+        error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION')
+    ) {
+      throw new PromptError(error.message, { cause: error });
+    }
+
+    throw error;
+  }
+
   const {
     values: {
       interactive = stdout.isTTY &&
@@ -134,16 +164,7 @@ async function show<
       ...parsed
     },
     positionals: positionalArgs,
-  } = parseArgs({
-    args,
-    strict: true,
-    allowPositionals: true,
-    allowNegative: true,
-    options: {
-      interactive: { type: 'boolean' },
-      ...options,
-    },
-  });
+  } = parseArgsResult;
 
   for (const positional of positionals) {
     const key = positional.slice(1, -1);
@@ -190,9 +211,11 @@ async function show<
       switch (q.type) {
         case 'text':
           if (typeof value !== 'string') {
-            error = new Error(`Invalid value for '${key}'. Expected string.`);
+            error = new PromptError(
+              `Invalid value for '${key}'. Expected string.`
+            );
           } else if ('required' in q && q.required === true && value === '') {
-            error = new Error(
+            error = new PromptError(
               `Invalid value for '${key}'. It cannot be empty.`
             );
           }
@@ -200,7 +223,7 @@ async function show<
           break;
         case 'select':
           if (q.choices.every((c) => c.value !== value)) {
-            error = new Error(
+            error = new PromptError(
               `Invalid value for '${key}'. Expected one of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
             );
           }
@@ -218,7 +241,7 @@ async function show<
               result == null ||
               result.some((v) => q.choices.every((c) => c.value !== v))
             ) {
-              error = new Error(
+              error = new PromptError(
                 `Invalid value for '${key}'. Expected any of: ${q.choices.map((c) => `'${c.value}'`).join(', ')}.`
               );
             }
@@ -229,7 +252,9 @@ async function show<
           break;
         case 'confirm':
           if (typeof value !== 'boolean') {
-            error = new Error(`Invalid value for '${key}'. Expected boolean.`);
+            error = new PromptError(
+              `Invalid value for '${key}'. Expected boolean.`
+            );
           }
 
           break;
@@ -243,9 +268,9 @@ async function show<
         const validation = q.validate(value);
 
         if (typeof validation === 'string') {
-          error = new Error(`Invalid value for '${key}'. ${validation}`);
+          error = new PromptError(`Invalid value for '${key}'. ${validation}`);
         } else if (!validation) {
-          error = new Error(`Invalid value for '${key}'.`);
+          error = new PromptError(`Invalid value for '${key}'.`);
         }
       }
 
@@ -295,7 +320,7 @@ async function show<
     if (!interactive) {
       // Check if required field is missing in non-interactive mode
       if ('required' in q && q.required === true && !(key in context)) {
-        throw new Error(
+        throw new PromptError(
           `Missing required value for '${key}'. Please provide a value using --${key}.`
         );
       }
