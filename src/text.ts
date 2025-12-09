@@ -10,7 +10,6 @@ import type { QuestionOptions, TextQuestion } from './types.ts';
 export async function text(
   question: TextQuestion & {
     prefill: string | undefined;
-    error: PromptError | undefined;
   },
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
@@ -64,9 +63,9 @@ export async function text(
   let initialAnswer = defaultValue;
   let answer = initialAnswer;
   let validation: string | boolean =
-    typeof question.error?.validation === 'string'
-      ? question.error.validation
-      : question.error == null;
+    defaultValue != null && question.validate
+      ? question.validate(defaultValue)
+      : true;
 
   const updateFooter = () => {
     // Prefill the input with the default answer if it exists

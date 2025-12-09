@@ -291,8 +291,6 @@ async function show<
           error = new PromptError(
             `Invalid value for option '--${kebabKey}'. ${validation}`
           );
-
-          error.validation = validation;
         } else if (!validation) {
           error = new PromptError(`Invalid value for option '--${kebabKey}'`);
         }
@@ -365,15 +363,36 @@ async function show<
             {
               ...q,
               prefill: typeof value === 'string' ? value : undefined,
-              error: error,
             },
             options
           );
           break;
         case 'select':
+          context[key] = await select(
+            {
+              ...q,
+              prefill: typeof value === 'string' ? value : undefined,
+            },
+            options
+          );
+          break;
         case 'multiselect':
+          context[key] = await select(
+            {
+              ...q,
+              prefill: Array.isArray(value) ? value : undefined,
+            },
+            options
+          );
+          break;
         case 'confirm':
-          context[key] = await select(q, options);
+          context[key] = await select(
+            {
+              ...q,
+              prefill: typeof value === 'boolean' ? value : undefined,
+            },
+            options
+          );
           break;
         default:
           // exhaustive check

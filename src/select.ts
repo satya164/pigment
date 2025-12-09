@@ -22,7 +22,12 @@ export async function select<
       : T extends ConfirmQuestion
         ? boolean
         : never,
->(question: T, { stdin, stdout, onCancel }: QuestionOptions): Promise<R> {
+>(
+  question: T & {
+    prefill: R | undefined;
+  },
+  { stdin, stdout, onCancel }: QuestionOptions
+): Promise<R> {
   const message = question.message;
   const type = question.type === 'confirm' ? 'select' : question.type;
   const choices =
@@ -44,9 +49,10 @@ export async function select<
   }
 
   const defaultValue: unknown =
-    typeof question.default === 'function'
+    question.prefill ??
+    (typeof question.default === 'function'
       ? await question.default()
-      : question.default;
+      : question.default);
 
   let index =
     type === 'multiselect'
@@ -58,7 +64,13 @@ export async function select<
   let selected: unknown[] =
     type === 'multiselect' && Array.isArray(defaultValue) ? defaultValue : [];
 
-  let validation: string | boolean = true;
+  let validation: string | boolean =
+    defaultValue != null && question.validate
+      ? question.validate(
+          // @ts-expect-error: typescript can't properly infer the type
+          type === 'multiselect' ? selected : choices[index]?.value
+        )
+      : true;
 
   const getText = (answered: boolean, cancelled?: boolean) => {
     const status =
