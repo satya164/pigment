@@ -9,6 +9,7 @@ import type { QuestionOptions, TextQuestion } from './types.ts';
 
 export async function text(
   question: TextQuestion,
+  error: PromptError | undefined,
   { stdin, stdout, onCancel }: QuestionOptions
 ): Promise<string> {
   const rl = createInterface({
@@ -59,7 +60,8 @@ export async function text(
 
   let initialAnswer = defaultValue;
   let answer = initialAnswer;
-  let validation: string | boolean = true;
+  let validation: string | boolean =
+    typeof error?.validation === 'string' ? error.validation : error == null;
 
   const updateFooter = () => {
     // Prefill the input with the default answer if it exists
@@ -69,7 +71,12 @@ export async function text(
     }
 
     const validationText =
-      validation !== true ? `${components.error({ validation })}\n` : '';
+      validation !== true
+        ? `${components.error({
+            validation:
+              typeof validation === 'string' ? validation : 'Invalid input',
+          })}\n`
+        : '';
     const validationLeadingWhitespaceCount =
       validationText.match(/^[\s]+/)?.[0].length ?? 0;
 

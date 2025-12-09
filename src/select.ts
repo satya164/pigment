@@ -87,7 +87,13 @@ export async function select<
               status,
             });
 
-    const error = validation !== true ? components.error({ validation }) : null;
+    const error =
+      validation !== true
+        ? components.error({
+            validation:
+              typeof validation === 'string' ? validation : 'Invalid selection',
+          })
+        : null;
 
     return `${text}${error != null && error.length ? `\n${error}` : ''}`;
   };

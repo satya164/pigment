@@ -220,14 +220,14 @@ async function show<
       q = { ...q, choices };
     }
 
+    let error;
+
     const kebabKey = camelToKebabCase(key);
 
     if (kebabKey in parsed) {
       let value: unknown =
         // @ts-expect-error: parsed doesn't have correct types
         parsed[kebabKey];
-
-      let error;
 
       switch (q.type) {
         case 'text':
@@ -292,6 +292,8 @@ async function show<
           error = new PromptError(
             `Invalid value for option '--${kebabKey}'. ${validation}`
           );
+
+          error.validation = validation;
         } else if (!validation) {
           error = new PromptError(`Invalid value for option '--${kebabKey}'`);
         }
@@ -360,7 +362,7 @@ async function show<
     try {
       switch (q.type) {
         case 'text':
-          context[key] = await text(q, options);
+          context[key] = await text(q, error, options);
           break;
         case 'select':
         case 'multiselect':

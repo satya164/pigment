@@ -165,15 +165,9 @@ function border() {
   return styleText(theme.separator, '│');
 }
 
-export function error({
-  validation,
-}: {
-  validation: boolean | string | undefined;
-}) {
-  const hint = validation === false ? 'Invalid input' : validation;
-
-  if (hint != null && hint !== true) {
-    return `  ${styleText(theme.error, hint)}`;
+export function error({ validation }: { validation: string | undefined }) {
+  if (validation != null) {
+    return `  ${styleText(theme.error, validation)}`;
   }
 
   return '';
