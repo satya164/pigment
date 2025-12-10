@@ -1,7 +1,7 @@
 {
   "name": "pigment",
   "description": "A library for creating interactive command-line UI",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/satya164/pigment.git"
