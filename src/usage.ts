@@ -41,6 +41,10 @@ export function usage({
       name: '-h, --help',
       description: 'Show this help message and exit',
     },
+    {
+      name: '--interactive',
+      description: 'Force interactive mode, or disable with --no-interactive',
+    },
   ];
 
   const options = Object.entries(questions).map(([key, question]): Detail => {

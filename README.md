@@ -18,7 +18,9 @@ A library for creating interactive command-line applications.
 
 This library aims to simplify writing command line tools that can be used interactively by prompting users for input, as well as non-interactively by providing answers via CLI arguments.
 
-Combining different tools for prompting and argument parsing leads to duplicated logic, and subtle differences which makes it hard to maintain. So the idea is to have a single API to support both use cases. The library reads CLI arguments and skips prompts for any valid answers provided via arguments, and prompts for the rest if in interactive mode. Interactive mode can also be explicitly disabled by passing the `--no-interactive` flag.
+Combining different tools for prompting and argument parsing leads to duplicated logic, and subtle differences which makes it hard to maintain. So the idea is to have a single API to support both use cases. The library reads CLI arguments and skips prompts for any valid answers provided via arguments, and prompts for the rest if in interactive mode.
+
+Interactive mode can also be explicitly enabled or disabled by passing the `--interactive` or `--no-interactive` flags respectively.
 
 ## Installation
 
