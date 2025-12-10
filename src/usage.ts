@@ -42,7 +42,7 @@ export function usage({
       description: 'Show this help message and exit',
     },
     {
-      name: '--interactive',
+      name: '    --interactive',
       description: 'Force interactive mode, or disable with --no-interactive',
     },
   ];
