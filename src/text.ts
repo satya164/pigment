@@ -26,6 +26,7 @@ export async function text(
         message: question.message,
         status: 'cancelled',
         answer,
+        validation: true,
       })
     );
 
@@ -37,6 +38,7 @@ export async function text(
   const text = components.text({
     message: question.message,
     status: 'pending',
+    validation: true,
   });
 
   if (text.includes('<input>') && !text.includes('<input>\n')) {
@@ -45,9 +47,9 @@ export async function text(
     );
   }
 
-  const [before = '', after = ''] = text.includes('<input>\n')
+  const [before = ''] = text.includes('<input>\n')
     ? text.split('<input>\n')
-    : [text, ''];
+    : [text];
 
   const lines = before.split('\n');
   const prompt = lines.pop() ?? '';
@@ -74,41 +76,17 @@ export async function text(
       stdout.write(styleText(components.theme.hint, initialAnswer));
     }
 
-    const validationText =
-      validation !== true
-        ? `${components.error({
-            validation:
-              typeof validation === 'string' ? validation : 'Invalid input',
-          })}\n`
-        : '';
-    const validationLeadingWhitespaceCount =
-      validationText.match(/^[\s]+/)?.[0].length ?? 0;
+    const text = components.text({
+      message: question.message,
+      status: 'pending',
+      validation,
+    });
 
-    const lines = [];
+    const [, after = ''] = text.includes('<input>\n')
+      ? text.split('<input>\n')
+      : [text, ''];
 
-    let containsValidation = false;
-
-    // If validation text starts with whitespace, and the prompt footer is smaller,
-    // We can merge both for a more compact display
-    for (const line of after.split('\n')) {
-      const visibleLength = stripVTControlCharacters(line).length;
-
-      if (
-        !containsValidation &&
-        visibleLength <= validationLeadingWhitespaceCount
-      ) {
-        lines.push(`${line}${validationText.slice(visibleLength)}`);
-        containsValidation = true;
-      } else {
-        lines.push(line);
-      }
-    }
-
-    if (!containsValidation) {
-      lines.push(validationText);
-    }
-
-    const content = lines.join('\n');
+    const content = after;
 
     // The cursor position doesn't include pre-filled text as it's not in the input
     // So we need to add the length of the answer to get the correct column
@@ -234,6 +212,7 @@ export async function text(
       message: question.message,
       status: 'done',
       answer,
+      validation: true,
     })
   );
 

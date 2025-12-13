@@ -16,12 +16,16 @@ export function text({
   message,
   answer,
   status,
+  validation,
 }: {
   message: string;
   answer?: string;
   status: Status;
+  validation: string | boolean;
 }) {
-  return `${question({ message, status })}\n${border()} ${status !== 'pending' ? styleText(theme.hint, answer ?? '') : `<input>\n${styleText(theme.separator, '└')}`}`;
+  const errorText = error({ validation, message: 'Invalid input' });
+
+  return `${question({ message, status })}\n${border()} ${status !== 'pending' ? styleText(theme.hint, answer ?? '') : `<input>\n${styleText(theme.separator, '└')}${errorText ? ` ${errorText}` : ''}`}`;
 }
 
 export function confirm({
@@ -29,11 +33,13 @@ export function confirm({
   choices,
   index,
   status,
+  validation,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
   status: Status;
+  validation: string | boolean;
 }) {
   if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
@@ -44,18 +50,23 @@ export function confirm({
     ].join('\n');
   }
 
-  return `${question({ message, status })}\n  ${choices
-    .map((choice, i) => {
-      const selected = i === index;
-      const title = choice.title ?? String(choice.value);
+  const errorText = error({ validation, message: 'Invalid choice' });
 
-      if (selected) {
-        return styleText(theme.selected, `● ${title}`);
-      }
+  return [
+    `${question({ message, status })}\n  ${choices
+      .map((choice, i) => {
+        const selected = i === index;
+        const title = choice.title ?? String(choice.value);
 
-      return `○ ${title}`;
-    })
-    .join(styleText(theme.separator, ' / '))}`;
+        if (selected) {
+          return styleText(theme.selected, `● ${title}`);
+        }
+
+        return `○ ${title}`;
+      })
+      .join(styleText(theme.separator, ' / '))}`,
+    ...(errorText ? [`  ${errorText}`] : []),
+  ].join('\n');
 }
 
 export function select({
@@ -63,11 +74,13 @@ export function select({
   choices,
   index,
   status,
+  validation,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
   status: Status;
+  validation: string | boolean;
 }) {
   if (status === 'done') {
     const answer = choices[index]?.title ?? choices[index]?.value;
@@ -77,6 +90,8 @@ export function select({
       `${border()} ${styleText(theme.hint, String(answer))}`,
     ].join('\n');
   }
+
+  const errorText = error({ validation, message: 'Invalid selection' });
 
   return [
     question({ message, status }),
@@ -89,6 +104,7 @@ export function select({
         active: selected,
       });
     }),
+    ...(errorText ? [`  ${errorText}`] : []),
   ].join('\n');
 }
 
@@ -98,12 +114,14 @@ export function multiselect({
   index,
   answer,
   status,
+  validation,
 }: {
   message: string;
   choices: { title?: string; value: unknown }[];
   index: number;
   answer: unknown[];
   status: Status;
+  validation: string | boolean;
 }) {
   if (status === 'done') {
     return [
@@ -118,6 +136,8 @@ export function multiselect({
     ].join('\n');
   }
 
+  const errorText = error({ validation, message: 'Invalid selection' });
+
   return [
     question({ message, status }),
     ...choices.map((choice, i) => {
@@ -129,6 +149,7 @@ export function multiselect({
         active: i === index,
       });
     }),
+    ...(errorText ? [`  ${errorText}`] : []),
   ].join('\n');
 }
 
@@ -165,9 +186,18 @@ function border() {
   return styleText(theme.separator, '│');
 }
 
-export function error({ validation }: { validation: string | undefined }) {
-  if (validation != null) {
-    return `  ${styleText(theme.error, validation)}`;
+function error({
+  validation,
+  message,
+}: {
+  validation: string | boolean;
+  message: string;
+}) {
+  if (validation !== true) {
+    return styleText(
+      theme.error,
+      typeof validation === 'string' ? validation : message
+    );
   }
 
   return '';

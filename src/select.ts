@@ -83,6 +83,7 @@ export async function select<
             choices,
             index,
             status,
+            validation,
           })
         : question.type === 'multiselect'
           ? components.multiselect({
@@ -91,23 +92,17 @@ export async function select<
               index,
               answer: selected,
               status,
+              validation,
             })
           : components.select({
               message,
               choices,
               index,
               status,
+              validation,
             });
 
-    const error =
-      validation !== true
-        ? components.error({
-            validation:
-              typeof validation === 'string' ? validation : 'Invalid selection',
-          })
-        : null;
-
-    return `${text}${error != null && error.length ? `\n${error}` : ''}`;
+    return text;
   };
 
   stdout.write(ansiEscapes.cursorHide);
