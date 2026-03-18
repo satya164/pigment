@@ -45,6 +45,10 @@ export function usage({
       name: '    --interactive',
       description: 'Force interactive mode, or disable with --no-interactive',
     },
+    {
+      name: '-y, --yes',
+      description: 'Accept defaults for all prompts without interaction',
+    },
   ];
 
   const options = Object.entries(questions).map(([key, question]): Detail => {

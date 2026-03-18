@@ -12,7 +12,7 @@ A library for creating interactive command-line applications.
 - Works in both interactive and non-interactive modes with a single configuration
 - Fully typed with TypeScript, with automatic type inference for prompt results
 - Support for text, select, multiselect, confirm, and async tasks
-- Built-in support for flags such as `--help`, `--version` and `--interactive`
+- Built-in support for flags such as `--help`, `--version`, `--interactive` and `--yes`
 
 ## Why?
 
@@ -21,6 +21,8 @@ This library aims to simplify writing command line tools that can be used intera
 Combining different tools for prompting and argument parsing leads to duplicated logic, and subtle differences which makes it hard to maintain. So the idea is to have a single API to support both use cases. The library reads CLI arguments and skips prompts for any valid answers provided via arguments, and prompts for the rest if in interactive mode.
 
 Interactive mode can also be explicitly enabled or disabled by passing the `--interactive` or `--no-interactive` flags respectively.
+
+The `--yes` (or `-y`) flag can be used to auto-accept default values.
 
 ## Installation
 

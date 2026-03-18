@@ -158,6 +158,7 @@ async function show<
       allowNegative: true,
       options: {
         interactive: { type: 'boolean' },
+        yes: { type: 'boolean', short: 'y' },
         ...options,
       },
     });
@@ -182,6 +183,7 @@ async function show<
       interactive = stdout.isTTY &&
         env.TERM !== 'dumb' &&
         (env.CI == null || env.CI === ''),
+      yes = false,
       ...parsed
     },
     positionals: positionalArgs,
@@ -323,15 +325,18 @@ async function show<
           : (q.skip ?? false)
         : false;
 
-    if (skip) {
+    if (skip || yes) {
       if ('default' in q) {
         const defaultValue: unknown =
           typeof q.default === 'function' ? await q.default() : q.default;
 
         context[key] = defaultValue;
+        continue;
+      } else if (skip) {
+        // Skip the question if skip is true
+        // But fall through to the prompts for yes
+        continue;
       }
-
-      continue;
     }
 
     // Always run spinner tasks
