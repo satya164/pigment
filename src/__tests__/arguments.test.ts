@@ -775,6 +775,93 @@ void describe('miscellaneous', () => {
     assert.strictEqual(result?.userName, 'Alice');
   });
 
+  void test('uses default value with --yes', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        default: 'default-user',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--yes'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.username, 'default-user');
+  });
+
+  void test('does not treat undefined default as provided with --yes', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        required: true,
+        default: async () => {
+          await Promise.resolve();
+          return undefined;
+        },
+      },
+    });
+
+    const { stdin, stdout, stderr } = createMockStreams();
+
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: ['--yes'],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(
+      output,
+      /Error: Missing required option '--username'. Provide a value using --username/
+    );
+  });
+
+  void test('skips validation for skipped question with --yes', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        skip: true,
+        default: 'ab',
+        validate: (value) =>
+          value.length >= 3 ? true : 'Username must be at least 3 characters',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--yes'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.username, 'ab');
+  });
+
   void test('uses default value for skipped question when not provided via args', async () => {
     const prompt = create([], {
       username: {
@@ -795,6 +882,29 @@ void describe('miscellaneous', () => {
     });
 
     assert.strictEqual(result?.username, 'default-user');
+  });
+
+  void test('does not overwrite user supplied value for skipped question', async () => {
+    const prompt = create([], {
+      username: {
+        type: 'text',
+        description: 'Username',
+        message: 'Enter username',
+        skip: true,
+        default: 'default-user',
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: ['--username', 'Alice'],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.username, 'Alice');
   });
 
   void test('handles async skip function', async () => {

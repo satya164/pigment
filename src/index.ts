@@ -226,6 +226,23 @@ async function show<
 
     const kebabKey = camelToKebabCase(key);
 
+    const skip = async () =>
+      'skip' in q
+        ? typeof q.skip === 'function'
+          ? await q.skip()
+          : (q.skip ?? false)
+        : false;
+
+    if (yes && !(kebabKey in parsed) && 'default' in q && !(await skip())) {
+      const defaultValue: unknown =
+        typeof q.default === 'function' ? await q.default() : q.default;
+
+      if (defaultValue !== undefined) {
+        // @ts-expect-error: parsed doesn't have correct types
+        parsed[kebabKey] = defaultValue;
+      }
+    }
+
     if (kebabKey in parsed) {
       // @ts-expect-error: parsed doesn't have correct types
       value = parsed[kebabKey];
@@ -318,25 +335,15 @@ async function show<
       },
     };
 
-    const skip =
-      'skip' in q
-        ? typeof q.skip === 'function'
-          ? await q.skip()
-          : (q.skip ?? false)
-        : false;
-
-    if (skip || yes) {
+    if (await skip()) {
       if ('default' in q) {
         const defaultValue: unknown =
           typeof q.default === 'function' ? await q.default() : q.default;
 
         context[key] = defaultValue;
-        continue;
-      } else if (skip) {
-        // Skip the question if skip is true
-        // But fall through to the prompts for yes
-        continue;
       }
+
+      continue;
     }
 
     // Always run spinner tasks
