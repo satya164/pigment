@@ -38,16 +38,6 @@ export async function select<
         ]
       : question.choices;
 
-  // Don't prompt if there's only one choice
-  if (choices.length === 1 && type === 'select') {
-    const choice = choices[0];
-
-    if (choice != null) {
-      // @ts-expect-error: typescript can't properly infer the type
-      return choice.value;
-    }
-  }
-
   const defaultValue: unknown =
     question.prefill ??
     (typeof question.default === 'function'
