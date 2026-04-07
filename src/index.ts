@@ -233,24 +233,13 @@ async function show<
           : (q.skip ?? false)
         : false;
 
-    if (yes && !(kebabKey in parsed) && !(await skip())) {
-      if (
-        q.type === 'select' &&
-        q.choices.length === 1 &&
-        q.choices[0] != null
-      ) {
-        // If select has single choice, use it as default
-        // Similar to how interactive mode skips the prompt
-        // @ts-expect-error: parsed doesn't have correct types
-        parsed[kebabKey] = q.choices[0].value;
-      } else if ('default' in q) {
-        const defaultValue =
-          typeof q.default === 'function' ? await q.default() : q.default;
+    if (yes && !(kebabKey in parsed) && 'default' in q && !(await skip())) {
+      const defaultValue =
+        typeof q.default === 'function' ? await q.default() : q.default;
 
-        if (defaultValue !== undefined) {
-          // @ts-expect-error: parsed doesn't have correct types
-          parsed[kebabKey] = defaultValue;
-        }
+      if (defaultValue !== undefined) {
+        // @ts-expect-error: parsed doesn't have correct types
+        parsed[kebabKey] = defaultValue;
       }
     }
 
@@ -364,6 +353,14 @@ async function show<
       continue;
     }
 
+    // If there's only one choice in select, accept it
+    // This skips the prompt in interactive mode
+    // And doesn't require the argument in non-interactive mode
+    if (q.type === 'select' && q.choices.length === 1 && q.choices[0] != null) {
+      context[key] = q.choices[0].value;
+      continue;
+    }
+
     if (!interactive) {
       // Check if required field is missing in non-interactive mode
       if ('required' in q && q.required === true && !(key in context)) {
@@ -391,18 +388,13 @@ async function show<
           );
           break;
         case 'select':
-          // Don't prompt if there's only one choice
-          if (q.choices.length === 1 && q.choices[0] != null) {
-            context[key] = q.choices[0].value;
-          } else {
-            context[key] = await select(
-              {
-                ...q,
-                prefill: typeof value === 'string' ? value : undefined,
-              },
-              options
-            );
-          }
+          context[key] = await select(
+            {
+              ...q,
+              prefill: typeof value === 'string' ? value : undefined,
+            },
+            options
+          );
           break;
         case 'multiselect':
           context[key] = await select(

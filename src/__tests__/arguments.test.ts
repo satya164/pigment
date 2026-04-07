@@ -385,6 +385,32 @@ void describe('select questions', () => {
     assert.ok(output);
     assert.match(output, /Error: Invalid value for option '--drink'/);
   });
+
+  void test('uses single select choice in non-interactive mode', async () => {
+    const prompt = create([], {
+      drink: {
+        type: 'select',
+        description: 'Favorite drink',
+        message: 'Choose a drink',
+        required: true,
+        choices: [
+          { title: 'Coffee', value: 'coffee' },
+          { title: 'Tea', value: 'tea', skip: true },
+        ],
+      },
+    });
+
+    const { stdin, stdout } = createMockStreams();
+
+    const result = await prompt.show({
+      name: 'test',
+      args: [],
+      stdin,
+      stdout,
+    });
+
+    assert.strictEqual(result?.drink, 'coffee');
+  });
 });
 
 void describe('multiselect questions', () => {
@@ -795,32 +821,6 @@ void describe('miscellaneous', () => {
     });
 
     assert.strictEqual(result?.username, 'default-user');
-  });
-
-  void test('uses single select choice with --yes', async () => {
-    const prompt = create([], {
-      drink: {
-        type: 'select',
-        description: 'Favorite drink',
-        message: 'Choose a drink',
-        required: true,
-        choices: [
-          { title: 'Coffee', value: 'coffee' },
-          { title: 'Tea', value: 'tea', skip: true },
-        ],
-      },
-    });
-
-    const { stdin, stdout } = createMockStreams();
-
-    const result = await prompt.show({
-      name: 'test',
-      args: ['--yes'],
-      stdin,
-      stdout,
-    });
-
-    assert.strictEqual(result?.drink, 'coffee');
   });
 
   void test('does not treat undefined default as provided with --yes', async () => {
