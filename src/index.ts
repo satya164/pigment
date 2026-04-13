@@ -429,3 +429,5 @@ async function show<
   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   return context as AnswerList<P, Q>;
 }
+
+export type { PositionalArgument, Prompt, QuestionList };
