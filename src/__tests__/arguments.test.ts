@@ -44,6 +44,31 @@ void describe('positional arguments', () => {
     assert.strictEqual(result?.name, 'Alice');
   });
 
+  void test('throws error when required positional argument is missing', async () => {
+    const prompt = create(['<name>'], {});
+    const { stdin, stdout, stderr } = createMockStreams();
+
+    let exitCode: number | undefined;
+
+    await prompt.show({
+      name: 'test',
+      args: [],
+      stdin,
+      stdout,
+      stderr,
+      onExit: (code) => {
+        exitCode = code;
+      },
+    });
+
+    assert.strictEqual(exitCode, 1);
+
+    const output = String(stderr.read());
+
+    assert.ok(output);
+    assert.match(output, /Error: Missing required argument '<name>'/);
+  });
+
   void test('parses optional positional argument when provided', async () => {
     const prompt = create(['[directory]'], {});
     const { stdin, stdout } = createMockStreams();

@@ -74,24 +74,32 @@ type DefaultValue<Value> =
   | undefined
   | (() => Value | undefined | Promise<Value | undefined>);
 
+type DefaultResult<T> = T extends { default: infer D }
+  ? D extends (...args: never[]) => infer R
+    ? Awaited<R>
+    : D
+  : never;
+
+type RequiredAnswer<T extends Question> = T extends { required: true }
+  ? AnswerInternal<T>
+  : AnswerInternal<T> | undefined;
+
 type Answer<T extends Question | null> =
   T extends TaskQuestion<unknown>
     ? AnswerInternal<T>
-    : T extends Question & {
-          required: true;
-          skip?: never;
-          default?: never;
-        }
-      ? AnswerInternal<T>
-      : T extends Question & { default: DefaultValue<infer D> }
-        ? AnswerInternal<T> | D
-        : AnswerInternal<NonNullable<T>> | undefined;
+    : T extends Question
+      ? T extends { skip: infer S }
+        ? S extends false
+          ? RequiredAnswer<T>
+          : AnswerInternal<T> | DefaultResult<T> | undefined
+        : RequiredAnswer<T>
+      : undefined;
 
 type AnswerInternal<T extends Question> =
-  T extends SelectQuestion<infer Choice>
-    ? Choice['value']
-    : T extends MultiSelectQuestion<infer Choice>
-      ? Choice['value'][]
+  T extends SelectQuestion<SelectChoice>
+    ? T['choices'][number]['value']
+    : T extends MultiSelectQuestion<SelectChoice>
+      ? T['choices'][number]['value'][]
       : T extends ConfirmQuestion
         ? boolean
         : T extends TextQuestion

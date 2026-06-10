@@ -79,7 +79,7 @@ export const prompt = create(['<name>', '[directory]'], {
         value: 'tea',
       },
     ],
-    default: 'tea',
+    default: (): string => 'tea',
     required: true,
   },
   sugar: {
@@ -132,6 +132,7 @@ export const prompt = create(['<name>', '[directory]'], {
     type: 'text',
     description: 'How the user is feeling',
     message: 'How are you feeling today?',
+    default: (): string | undefined => undefined,
   },
 });
 

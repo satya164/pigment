@@ -27,10 +27,10 @@ expectTypeOf(result).toEqualTypeOf<
         abilities: string[];
       };
       planet: 'earth';
-      adult: boolean;
+      adult: boolean | undefined;
       drink: 'coffee' | 'tea';
       sugar: boolean | undefined;
-      animal: ['otter'] | 'otter'[];
+      animal: 'otter'[];
       fruits: ('apple' | 'avocado' | 'banana' | 'orange')[] | undefined;
       feeling: string | undefined;
     }>

@@ -195,6 +195,8 @@ async function show<
 
     if (value != null) {
       context[key] = value;
+    } else if (positional.startsWith('<')) {
+      throw new PromptError(`Missing required argument '${positional}'`);
     }
   }
 

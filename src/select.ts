@@ -18,7 +18,7 @@ export async function select<
   R = T extends SelectQuestion<infer Choice>
     ? Choice['value']
     : T extends MultiSelectQuestion<infer Choice>
-      ? Choice
+      ? Choice['value'][]
       : T extends ConfirmQuestion
         ? boolean
         : never,
